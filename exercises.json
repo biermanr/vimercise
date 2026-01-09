@@ -1,0 +1,32 @@
+[
+    {
+        "name": "Add exclamation",
+        "starting": "Hello World",
+        "target": "Hello World!",
+        "description": "Add an exclamation mark at the end"
+    },
+    {
+        "name": "Navigate to word",
+        "starting": "|The quick brown fox",
+        "target": "The quick |brown fox",
+        "description": "Move cursor to the word 'brown'"
+    },
+    {
+        "name": "Delete a word",
+        "starting": "|The quick brown lazy fox",
+        "target": "The quick brown fox|",
+        "description": "Delete the word 'lazy'"
+    },
+    {
+        "name": "Change word",
+        "starting": "Hello |world",
+        "target": "Hello |universe",
+        "description": "Change 'world' to 'universe'"
+    },
+    {
+        "name": "Insert at beginning",
+        "starting": "world",
+        "target": "|Hello world",
+        "description": "Add 'Hello ' at the beginning"
+    }
+]

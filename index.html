@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vimercise - Practice Your Vim Skills</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Vimercise</h1>
+            <p class="instructions">Practice your Vim skills by transforming the starting text to match the target text using Vim commands. Mouse clicks are disabled to encourage keyboard-only navigation.</p>
+        </header>
+
+        <div class="exercise-controls">
+            <div class="exercise-nav">
+                <button id="prev-exercise">Previous</button>
+                <span class="exercise-info"><span id="exercise-number">1</span> of <span id="exercise-total">1</span></span>
+                <button id="next-exercise">Next</button>
+            </div>
+            <div class="keystroke-counter">
+                Keystrokes: <strong id="keystroke-count">0</strong>
+            </div>
+        </div>
+
+        <div class="editors-container">
+            <div class="editor-section">
+                <h2>Starting Text (Editable)</h2>
+                <div class="editor-wrapper">
+                    <div id="editor"></div>
+                </div>
+            </div>
+
+            <div class="editor-section">
+                <h2>Target Text (Goal)</h2>
+                <div class="editor-wrapper">
+                    <div id="target"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="status-bar">
+                <span style="color: #666; font-weight: 600;">Vim Mode:</span>
+                <span id="vim-mode" class="vim-mode mode-normal">Normal</span>
+            </div>
+            <button id="reset-btn">Reset Exercise</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "codemirror": "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.js",
+            "@codemirror/state": "https://cdn.jsdelivr.net/npm/@codemirror/state@6.4.1/dist/index.js",
+            "@codemirror/view": "https://cdn.jsdelivr.net/npm/@codemirror/view@6.26.3/dist/index.js",
+            "@codemirror/language": "https://cdn.jsdelivr.net/npm/@codemirror/language@6.10.1/dist/index.js",
+            "@codemirror/commands": "https://cdn.jsdelivr.net/npm/@codemirror/commands@6.3.3/dist/index.js",
+            "@codemirror/search": "https://cdn.jsdelivr.net/npm/@codemirror/search@6.5.6/dist/index.js",
+            "@codemirror/autocomplete": "https://cdn.jsdelivr.net/npm/@codemirror/autocomplete@6.15.0/dist/index.js",
+            "@codemirror/lint": "https://cdn.jsdelivr.net/npm/@codemirror/lint@6.5.0/dist/index.js",
+            "@lezer/common": "https://cdn.jsdelivr.net/npm/@lezer/common@1.2.1/dist/index.js",
+            "@lezer/highlight": "https://cdn.jsdelivr.net/npm/@lezer/highlight@1.2.0/dist/index.js",
+            "style-mod": "https://cdn.jsdelivr.net/npm/style-mod@4.1.2/src/style-mod.js",
+            "w3c-keyname": "https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/index.js",
+            "crelt": "https://cdn.jsdelivr.net/npm/crelt@1.0.6/index.js"
+        }
+    }
+    </script>
+    <script type="module">
+        import { EditorView, basicSetup } from 'codemirror';
+        import { EditorState, Compartment } from '@codemirror/state';
+        import { Decoration } from '@codemirror/view';
+        import { vim, Vim, getCM } from 'https://cdn.jsdelivr.net/npm/@replit/codemirror-vim@6.3.0/dist/index.js';
+
+        let exercises = [];
+        let currentExerciseIndex = 0;
+        let keystrokeCount = 0;
+        let isSuccess = false;
+
+        // Compartment for controlling read-only state
+        const readOnlyCompartment = new Compartment();
+
+        // Get the editor wrapper elements
+        const editorWrappers = document.querySelectorAll('.editor-section .editor-wrapper');
+        const startingWrapper = editorWrappers[0];
+        const targetWrapper = editorWrappers[1];
+
+        // Parse text and extract cursor position (marked with |)
+        function parseTextWithCursor(text) {
+            const cursorIndex = text.indexOf('|');
+            if (cursorIndex === -1) {
+                return { text, cursorPos: null };
+            }
+            return {
+                text: text.replace('|', ''),
+                cursorPos: cursorIndex
+            };
+        }
+
+        // Get current exercise
+        function getCurrentExercise() {
+            return exercises[currentExerciseIndex];
+        }
+
+        // Check if user is in normal mode
+        function isInNormalMode(view) {
+            const cm = getCM(view);
+            if (!cm) return true; // Default to true if we can't get vim state
+
+            const vimState = cm.state.vim;
+            if (!vimState) return true;
+
+            // User is in normal mode if NOT in insert, visual, or replace mode
+            return !vimState.insertMode && !vimState.visualMode && cm.state.keyMap !== 'vim-replace';
+        }
+
+        // Function to check if text and cursor position match target
+        function checkSuccess(view) {
+            const exercise = getCurrentExercise();
+            const targetParsed = parseTextWithCursor(exercise.target);
+            const currentText = view.state.doc.toString();
+            const currentCursorPos = view.state.selection.main.head;
+
+            const textMatches = currentText === targetParsed.text;
+
+            // Normalize cursor position (vim normal mode can't be after last char)
+            let expectedCursorPos = targetParsed.cursorPos;
+            if (expectedCursorPos !== null && expectedCursorPos >= targetParsed.text.length && targetParsed.text.length > 0) {
+                expectedCursorPos = targetParsed.text.length - 1;
+            }
+
+            const cursorMatches = expectedCursorPos === null || currentCursorPos === expectedCursorPos;
+            const inNormalMode = isInNormalMode(view);
+
+            if (textMatches && cursorMatches && inNormalMode) {
+                if (!isSuccess) {
+                    isSuccess = true;
+                    startingWrapper.classList.add('success');
+                    targetWrapper.classList.add('success');
+
+                    // Make editor read-only and blur it
+                    view.dispatch({
+                        effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(true))
+                    });
+
+                    // Remove focus from the editor
+                    view.contentDOM.blur();
+                }
+            } else {
+                if (isSuccess) {
+                    isSuccess = false;
+                    startingWrapper.classList.remove('success');
+                    targetWrapper.classList.remove('success');
+
+                    // Re-enable editing
+                    view.dispatch({
+                        effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(false))
+                    });
+
+                    // Restore focus to the editor
+                    view.focus();
+                }
+            }
+        }
+
+        // Update keystroke counter
+        function updateKeystrokeCount() {
+            document.getElementById('keystroke-count').textContent = keystrokeCount;
+        }
+
+        // Extension to block mouse cursor positioning
+        const blockMouseSelection = EditorView.domEventHandlers({
+            mousedown: (event, view) => {
+                // If success is achieved, don't allow any interaction
+                if (isSuccess) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return true;
+                }
+
+                // Prevent the default mousedown behavior that sets cursor position
+                event.preventDefault();
+                // Keep focus on the editor
+                view.focus();
+                return true;
+            },
+            focus: (event, view) => {
+                // Prevent focus if success is achieved
+                if (isSuccess) {
+                    view.contentDOM.blur();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        // Extension to track keystrokes and block when success achieved
+        const keystrokeTracker = EditorView.domEventHandlers({
+            keydown: (event, view) => {
+                // Block all keys if success is achieved
+                if (isSuccess) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return true;
+                }
+
+                // Don't count modifier keys alone
+                if (!['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(event.key)) {
+                    keystrokeCount++;
+                    updateKeystrokeCount();
+                }
+                return false;
+            }
+        });
+
+        // Create the editable editor with Vim bindings
+        let editorView;
+        function createEditor(text, cursorPos) {
+            const parent = document.getElementById('editor');
+            if (editorView) {
+                editorView.destroy();
+            }
+
+            const editorState = EditorState.create({
+                doc: text,
+                extensions: [
+                    vim(),
+                    basicSetup,
+                    EditorView.lineWrapping,
+                    blockMouseSelection,
+                    keystrokeTracker,
+                    readOnlyCompartment.of(EditorState.readOnly.of(false)),
+                    EditorView.updateListener.of((update) => {
+                        if (update.docChanged || update.selectionSet) {
+                            checkSuccess(update.view);
+                        }
+                    }),
+                ],
+                selection: cursorPos !== null ? { anchor: cursorPos } : undefined
+            });
+
+            editorView = new EditorView({
+                state: editorState,
+                parent: parent
+            });
+
+            return editorView;
+        }
+
+        // Create the read-only target display
+        let targetView;
+        function createTargetView(textWithMarker) {
+            const parent = document.getElementById('target');
+            if (targetView) {
+                targetView.destroy();
+            }
+
+            // Parse to get cursor position and clean text
+            const parsed = parseTextWithCursor(textWithMarker);
+            const { text, cursorPos } = parsed;
+
+            // Create decorations for cursor highlight
+            const decorations = [];
+            if (cursorPos !== null) {
+                // In vim normal mode, cursor is always ON a character
+                // If cursor is at/after end, show it on the last character
+                let highlightPos = cursorPos;
+                if (highlightPos >= text.length && text.length > 0) {
+                    highlightPos = text.length - 1;
+                }
+
+                if (highlightPos < text.length) {
+                    const cursorMark = Decoration.mark({
+                        class: 'target-cursor'
+                    });
+                    decorations.push(cursorMark.range(highlightPos, highlightPos + 1));
+                }
+            }
+
+            const targetState = EditorState.create({
+                doc: text,
+                extensions: [
+                    basicSetup,
+                    EditorView.lineWrapping,
+                    EditorState.readOnly.of(true),
+                    EditorView.decorations.of(Decoration.set(decorations))
+                ]
+            });
+
+            targetView = new EditorView({
+                state: targetState,
+                parent: parent
+            });
+
+            return targetView;
+        }
+
+        // Update Vim mode indicator
+        const vimModeElement = document.getElementById('vim-mode');
+
+        function updateVimMode() {
+            const cm = getCM(editorView);
+            if (!cm) {
+                vimModeElement.textContent = 'normal';
+                vimModeElement.className = 'vim-mode mode-normal';
+                return;
+            }
+
+            const vimState = cm.state.vim;
+            let mode = 'normal';
+
+            if (vimState) {
+                if (vimState.insertMode) {
+                    mode = 'insert';
+                } else if (vimState.visualMode) {
+                    mode = 'visual';
+                } else if (cm.state.keyMap === 'vim-replace') {
+                    mode = 'replace';
+                }
+            }
+
+            vimModeElement.textContent = mode;
+            vimModeElement.className = 'vim-mode mode-' + mode;
+        }
+
+        // Load an exercise
+        function loadExercise(index) {
+            const exercise = exercises[index];
+            const startingParsed = parseTextWithCursor(exercise.starting);
+
+            // Normalize starting cursor position for vim normal mode
+            let startingCursorPos = startingParsed.cursorPos;
+            if (startingCursorPos !== null && startingCursorPos >= startingParsed.text.length && startingParsed.text.length > 0) {
+                startingCursorPos = startingParsed.text.length - 1;
+            }
+
+            // Reset keystroke counter and success state
+            keystrokeCount = 0;
+            isSuccess = false;
+            updateKeystrokeCount();
+
+            // Remove success state from both wrappers
+            startingWrapper.classList.remove('success');
+            targetWrapper.classList.remove('success');
+
+            // Update UI
+            document.getElementById('exercise-number').textContent = index + 1;
+            document.getElementById('exercise-total').textContent = exercises.length;
+
+            // Update button states
+            document.getElementById('prev-exercise').disabled = index === 0;
+            document.getElementById('next-exercise').disabled = index === exercises.length - 1;
+
+            // Create editors - target highlights the cursor position
+            createEditor(startingParsed.text, startingCursorPos);
+            createTargetView(exercise.target);
+
+            // Set up event listener for vim mode updates
+            editorView.dom.addEventListener('keyup', updateVimMode);
+
+            // Focus the editor
+            editorView.focus();
+            updateVimMode();
+        }
+
+        // Initialize the application
+        async function init() {
+            try {
+                // Load exercises from JSON file
+                const response = await fetch('exercises.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to load exercises: ${response.statusText}`);
+                }
+                exercises = await response.json();
+
+                // Exercise navigation
+                document.getElementById('prev-exercise').addEventListener('click', () => {
+                    if (currentExerciseIndex > 0) {
+                        currentExerciseIndex--;
+                        loadExercise(currentExerciseIndex);
+                    }
+                });
+
+                document.getElementById('next-exercise').addEventListener('click', () => {
+                    if (currentExerciseIndex < exercises.length - 1) {
+                        currentExerciseIndex++;
+                        loadExercise(currentExerciseIndex);
+                    }
+                });
+
+                // Reset button functionality
+                document.getElementById('reset-btn').addEventListener('click', () => {
+                    loadExercise(currentExerciseIndex);
+                });
+
+                // Initial load
+                loadExercise(0);
+            } catch (error) {
+                console.error('Error initializing Vimercise:', error);
+                alert('Failed to load exercises. Please make sure exercises.json is available.');
+            }
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
