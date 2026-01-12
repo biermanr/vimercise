@@ -8,6 +8,108 @@ let currentExerciseIndex = 0;
 let keystrokeCount = 0;
 let isSuccess = false;
 
+// localStorage key
+const STORAGE_KEY = 'vimercise-progress';
+
+// Load progress from localStorage
+function loadProgress() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return { version: 1, exercises: {} };
+
+    try {
+        return JSON.parse(stored);
+    } catch (e) {
+        console.error('Failed to parse progress:', e);
+        return { version: 1, exercises: {} };
+    }
+}
+
+// Save progress to localStorage
+function saveProgress(progressData) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
+    } catch (e) {
+        console.error('Failed to save progress:', e);
+    }
+}
+
+// Update exercise progress (only save if better or first solve)
+function updateExerciseProgress(exerciseName, keystrokeCount) {
+    const progress = loadProgress();
+    const existing = progress.exercises[exerciseName];
+
+    // Only update if this is a new best or first completion
+    if (!existing || !existing.solved || keystrokeCount < existing.minKeystrokes) {
+        progress.exercises[exerciseName] = {
+            minKeystrokes: keystrokeCount,
+            solved: true,
+            lastAttempt: new Date().toISOString()
+        };
+        saveProgress(progress);
+        renderProgressTable();
+    }
+}
+
+// Render the progress table
+function renderProgressTable() {
+    const tbody = document.getElementById('progress-table-body');
+    if (!tbody) return; // Guard for initial load
+
+    const progress = loadProgress();
+    tbody.innerHTML = '';
+
+    exercises.forEach((exercise, index) => {
+        const row = document.createElement('tr');
+        row.className = 'progress-row';
+        if (index === currentExerciseIndex) {
+            row.classList.add('active');
+        }
+        row.dataset.exerciseIndex = index;
+
+        const exerciseData = progress.exercises[exercise.name];
+
+        const nameCell = document.createElement('td');
+        nameCell.className = 'exercise-name';
+        nameCell.textContent = exercise.name;
+
+        const keystrokesCell = document.createElement('td');
+        keystrokesCell.className = 'keystrokes';
+
+        if (exerciseData && exerciseData.solved) {
+            const badge = document.createElement('span');
+            badge.className = 'keystroke-badge';
+            badge.textContent = exerciseData.minKeystrokes;
+            keystrokesCell.appendChild(badge);
+        } else {
+            const icon = document.createElement('span');
+            icon.className = 'unsolved-icon';
+            icon.textContent = '☐';
+            keystrokesCell.appendChild(icon);
+        }
+
+        row.appendChild(nameCell);
+        row.appendChild(keystrokesCell);
+        tbody.appendChild(row);
+    });
+
+    // Add click handlers for navigation
+    tbody.querySelectorAll('.progress-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const index = parseInt(row.dataset.exerciseIndex);
+            currentExerciseIndex = index;
+            loadExercise(currentExerciseIndex);
+        });
+    });
+}
+
+// Clear all progress
+function clearProgress() {
+    if (confirm('Clear all progress? This cannot be undone.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderProgressTable();
+    }
+}
+
 // Compartment for controlling read-only state
 const readOnlyCompartment = new Compartment();
 
@@ -76,6 +178,9 @@ function checkSuccess(view) {
 
             // Remove focus from the editor
             view.contentDOM.blur();
+
+            // Save progress
+            updateExerciseProgress(exercise.name, keystrokeCount);
         }
     } else {
         if (isSuccess) {
@@ -299,6 +404,9 @@ function loadExercise(index) {
     // Focus the editor
     editorView.focus();
     updateVimMode();
+
+    // Update sidebar active state
+    renderProgressTable();
 }
 
 // Initialize the application
@@ -333,6 +441,12 @@ async function init() {
 
         // Initial load
         loadExercise(0);
+
+        // Initialize progress sidebar
+        renderProgressTable();
+
+        // Clear progress button handler
+        document.getElementById('clear-progress-btn').addEventListener('click', clearProgress);
     } catch (error) {
         console.error('Error initializing Vimercise:', error);
         alert('Failed to load exercises. Please make sure exercises.json is available.');
