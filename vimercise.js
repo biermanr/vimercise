@@ -8,8 +8,22 @@ let currentExerciseIndex = 0;
 let keystrokeCount = 0;
 let isSuccess = false;
 
-// localStorage key
+// localStorage keys
 const STORAGE_KEY = 'vimercise-progress';
+const CUSTOM_EXERCISES_KEY = 'vimercise-custom-exercises';
+
+// Load custom exercises from localStorage
+function loadCustomExercises() {
+    const stored = localStorage.getItem(CUSTOM_EXERCISES_KEY);
+    if (!stored) return [];
+
+    try {
+        return JSON.parse(stored);
+    } catch (e) {
+        console.error('Failed to parse custom exercises:', e);
+        return [];
+    }
+}
 
 // Load progress from localStorage
 function loadProgress() {
@@ -422,6 +436,196 @@ function loadExercise(index) {
     renderProgressTable();
 }
 
+// Create Exercise functionality
+let startingEditorView = null;
+let goalEditorView = null;
+let createSectionVisible = false;
+
+// Update Vim mode indicator for create editors
+function updateCreateVimMode(view, modeElementId) {
+    const modeElement = document.getElementById(modeElementId);
+    if (!modeElement) return;
+
+    const cm = getCM(view);
+    if (!cm) {
+        modeElement.textContent = 'normal';
+        modeElement.className = 'vim-mode mode-normal';
+        return;
+    }
+
+    const vimState = cm.state.vim;
+    let mode = 'normal';
+
+    if (vimState) {
+        if (vimState.insertMode) {
+            mode = 'insert';
+        } else if (vimState.visualMode) {
+            mode = 'visual';
+        } else if (cm.state.keyMap === 'vim-replace') {
+            mode = 'replace';
+        }
+    }
+
+    modeElement.textContent = mode;
+    modeElement.className = 'vim-mode mode-' + mode;
+}
+
+// Create an editor for the create exercise section
+function createExerciseEditor(parentId, modeElementId) {
+    const parent = document.getElementById(parentId);
+    if (!parent) return null;
+
+    const editorState = EditorState.create({
+        doc: '',
+        extensions: [
+            vim(),
+            basicSetup,
+            EditorView.lineWrapping,
+        ]
+    });
+
+    const view = new EditorView({
+        state: editorState,
+        parent: parent
+    });
+
+    // Set up event listener for vim mode updates
+    view.dom.addEventListener('keyup', () => updateCreateVimMode(view, modeElementId));
+
+    // Update mode initially
+    updateCreateVimMode(view, modeElementId);
+
+    return view;
+}
+
+// Get text with cursor position marker
+function getTextWithCursor(view, recordCursor) {
+    if (!view) return '';
+
+    const text = view.state.doc.toString();
+    if (!recordCursor) {
+        return text;
+    }
+
+    const cursorPos = view.state.selection.main.head;
+    return text.slice(0, cursorPos) + '|' + text.slice(cursorPos);
+}
+
+// Toggle create exercise section
+function toggleCreateSection(show) {
+    const section = document.getElementById('create-exercise-section');
+    if (!section) return;
+
+    if (show) {
+        section.style.display = 'block';
+        createSectionVisible = true;
+
+        // Create editors if they don't exist
+        if (!startingEditorView) {
+            startingEditorView = createExerciseEditor('starting-editor', 'starting-vim-mode');
+        }
+        if (!goalEditorView) {
+            goalEditorView = createExerciseEditor('goal-editor', 'goal-vim-mode');
+        }
+
+        // Focus the first input
+        setTimeout(() => {
+            document.getElementById('exercise-name-input')?.focus();
+        }, 100);
+
+        // Scroll to the section
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        section.style.display = 'none';
+        createSectionVisible = false;
+
+        // Clear form inputs
+        document.getElementById('exercise-name-input').value = '';
+        document.getElementById('exercise-description-input').value = '';
+        document.getElementById('exercise-category-input').value = '';
+        document.getElementById('exercise-hint-input').value = '';
+
+        // Clear editors
+        if (startingEditorView) {
+            startingEditorView.dispatch({
+                changes: { from: 0, to: startingEditorView.state.doc.length, insert: '' }
+            });
+        }
+        if (goalEditorView) {
+            goalEditorView.dispatch({
+                changes: { from: 0, to: goalEditorView.state.doc.length, insert: '' }
+            });
+        }
+    }
+}
+
+// Save custom exercise
+function saveCustomExercise() {
+    const name = document.getElementById('exercise-name-input').value.trim();
+    const description = document.getElementById('exercise-description-input').value.trim();
+    const category = document.getElementById('exercise-category-input').value.trim() || 'Custom';
+    const hint = document.getElementById('exercise-hint-input').value.trim();
+
+    // Validate required fields
+    if (!name) {
+        alert('Please enter an exercise name.');
+        document.getElementById('exercise-name-input').focus();
+        return;
+    }
+
+    if (!description) {
+        alert('Please enter an exercise description.');
+        document.getElementById('exercise-description-input').focus();
+        return;
+    }
+
+    // Get checkbox states
+    const recordStartingCursor = document.getElementById('record-starting-cursor').checked;
+    const recordGoalCursor = document.getElementById('record-goal-cursor').checked;
+
+    // Get text from editors with cursor positions
+    const startingText = getTextWithCursor(startingEditorView, recordStartingCursor);
+    const targetText = getTextWithCursor(goalEditorView, recordGoalCursor);
+
+    // Validate that there's some content
+    if (!startingText.replace('|', '').trim() && !targetText.replace('|', '').trim()) {
+        alert('Please enter some text in at least one of the editors.');
+        return;
+    }
+
+    // Create the exercise object
+    const exercise = {
+        name,
+        starting: startingText,
+        target: targetText,
+        description,
+        category,
+        custom: true
+    };
+
+    if (hint) {
+        exercise.hint = hint;
+    }
+
+    // Load existing custom exercises and add the new one
+    const customExercises = loadCustomExercises();
+    customExercises.push(exercise);
+    localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(customExercises));
+
+    // Add to exercises array and update UI
+    exercises.push(exercise);
+    renderProgressTable();
+
+    // Close the create section
+    toggleCreateSection(false);
+
+    // Navigate to the new exercise
+    currentExerciseIndex = exercises.length - 1;
+    loadExercise(currentExerciseIndex);
+
+    alert('Custom exercise created successfully!');
+}
+
 // Initialize the application
 async function init() {
     try {
@@ -430,7 +634,11 @@ async function init() {
         if (!response.ok) {
             throw new Error(`Failed to load exercises: ${response.statusText}`);
         }
-        exercises = await response.json();
+        const builtInExercises = await response.json();
+
+        // Load custom exercises and merge with built-in exercises
+        const customExercises = loadCustomExercises();
+        exercises = [...builtInExercises, ...customExercises];
 
         // Reset button functionality
         document.getElementById('reset-btn').addEventListener('click', () => {
@@ -445,6 +653,24 @@ async function init() {
 
         // Clear progress button handler
         document.getElementById('clear-progress-btn').addEventListener('click', clearProgress);
+
+        // Create exercise button handler
+        document.getElementById('create-exercise-btn').addEventListener('click', () => {
+            toggleCreateSection(true);
+        });
+
+        // Close create section button handler
+        document.getElementById('close-create-btn').addEventListener('click', () => {
+            toggleCreateSection(false);
+        });
+
+        // Cancel create button handler
+        document.getElementById('cancel-create-btn').addEventListener('click', () => {
+            toggleCreateSection(false);
+        });
+
+        // Save exercise button handler
+        document.getElementById('save-exercise-btn').addEventListener('click', saveCustomExercise);
 
         // Hint toggle functionality
         const hintToggle = document.getElementById('hint-toggle');

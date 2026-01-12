@@ -24,8 +24,11 @@
         <div class="editors-container">
             <div class="progress-sidebar">
                 <div class="progress-header">
-                    <h2>Progress</h2>
-                    <button id="clear-progress-btn" class="small-btn" title="Clear all progress">Reset All</button>
+                    <h2>Exercises</h2>
+                    <div class="header-buttons">
+                        <button id="create-exercise-btn" class="small-btn create-btn" title="Create custom exercise">+ Create</button>
+                        <button id="clear-progress-btn" class="small-btn" title="Clear all progress">Reset All</button>
+                    </div>
                 </div>
                 <div class="progress-table-wrapper">
                     <table class="progress-table">
@@ -77,6 +80,79 @@
                     </h2>
                     <p id="hint-text" class="hint-text hint-hidden"></p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Create Exercise Section (Hidden by default) -->
+        <div id="create-exercise-section" class="create-exercise-section" style="display: none;">
+            <div class="create-exercise-header">
+                <h2>Create Custom Exercise</h2>
+                <button id="close-create-btn" class="small-btn">Close</button>
+            </div>
+
+            <div class="exercise-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="exercise-name-input">Exercise Name</label>
+                        <input type="text" id="exercise-name-input" placeholder="e.g., Delete two words" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exercise-description-input">Description</label>
+                        <input type="text" id="exercise-description-input" placeholder="e.g., Delete the first two words" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="exercise-category-input">Category</label>
+                        <input type="text" id="exercise-category-input" placeholder="e.g., Editing, Movement (optional)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exercise-hint-input">Hint (optional)</label>
+                        <input type="text" id="exercise-hint-input" placeholder="e.g., Use w to navigate, dw to delete words">
+                    </div>
+                </div>
+            </div>
+
+            <div class="create-editors-container">
+                <div class="create-editor-section">
+                    <div class="editor-header">
+                        <h3>Starting Condition</h3>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="record-starting-cursor" checked>
+                            Record Cursor Position
+                        </label>
+                    </div>
+                    <div class="editor-wrapper">
+                        <div id="starting-editor"></div>
+                    </div>
+                    <div class="vim-mode-wrapper">
+                        <span id="starting-vim-mode" class="vim-mode mode-normal">Normal</span>
+                    </div>
+                </div>
+
+                <div class="create-editor-section">
+                    <div class="editor-header">
+                        <h3>Goal State</h3>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="record-goal-cursor" checked>
+                            Record Cursor Position
+                        </label>
+                    </div>
+                    <div class="editor-wrapper">
+                        <div id="goal-editor"></div>
+                    </div>
+                    <div class="vim-mode-wrapper">
+                        <span id="goal-vim-mode" class="vim-mode mode-normal">Normal</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="save-exercise-btn" class="primary-btn">Create Exercise</button>
+                <button id="cancel-create-btn">Cancel</button>
             </div>
         </div>
     </div>
