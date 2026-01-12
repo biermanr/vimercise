@@ -35,10 +35,16 @@ h1 {
 
 .editors-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 320px;
+    grid-template-columns: 320px 1fr;
     gap: 20px;
     margin-bottom: 20px;
     align-items: start;
+}
+
+.editors-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .editor-section {
@@ -46,6 +52,34 @@ h1 {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.editor-header h2 {
+    color: #2c3e50;
+    font-size: 18px;
+    margin: 0;
+}
+
+.editor-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.vim-mode-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .editor-section h2 {
@@ -72,64 +106,28 @@ h1 {
     opacity: 0.8;
 }
 
-.controls {
-    background: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.status-bar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.exercise-controls {
-    background: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.exercise-nav {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.exercise-nav button {
-    padding: 8px 16px;
-}
-
-.exercise-info {
-    color: #2c3e50;
-    font-weight: 600;
-}
 
 .keystroke-counter {
     color: #666;
-    font-size: 14px;
+    font-size: 13px;
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
 }
 
 .keystroke-counter strong {
     color: #2c3e50;
+    font-size: 14px;
 }
 
 .vim-mode {
-    padding: 6px 12px;
+    padding: 5px 10px;
     border-radius: 4px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .mode-normal {
@@ -156,10 +154,10 @@ button {
     background: #3498db;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 6px 14px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     transition: background 0.2s;
 }
@@ -180,6 +178,11 @@ button:disabled {
 
 button:disabled:hover {
     background: #95a5a6;
+}
+
+#reset-btn {
+    padding: 6px 12px;
+    font-size: 12px;
 }
 
 .cm-editor {
@@ -348,5 +351,88 @@ button:disabled:hover {
 
     .container {
         max-width: 100%;
+    }
+
+    .editor-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .editor-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+.hint-section {
+    background: #fffbea;
+    border-left: 4px solid #f39c12;
+}
+
+.hint-toggle {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.hint-toggle:hover {
+    color: #f39c12;
+}
+
+.hint-toggle-icon {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.hint-toggle.expanded .hint-toggle-icon {
+    transform: rotate(90deg);
+}
+
+.hint-text {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    opacity: 1;
+    margin-top: 10px;
+}
+
+.hint-text.hint-hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .editor-header h2 {
+        font-size: 16px;
+    }
+
+    .keystroke-counter,
+    .vim-mode-wrapper {
+        font-size: 12px;
+    }
+
+    .vim-mode {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    #reset-btn {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+
+    .hint-text {
+        font-size: 13px;
     }
 }

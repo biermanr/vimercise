@@ -3,30 +3,35 @@
         "name": "Add exclamation",
         "starting": "Hello World",
         "target": "Hello World!",
-        "description": "Add an exclamation mark at the end"
+        "description": "Add an exclamation mark at the end",
+        "hint": "Use A to append at the end of the line, type !, then press Esc"
     },
     {
         "name": "Navigate to word",
         "starting": "|The quick brown fox",
         "target": "The quick |brown fox",
-        "description": "Move cursor to the word 'brown'"
+        "description": "Move cursor to the word 'brown'",
+        "hint": "Use w to move forward by words. Try counting: how many w's to reach 'brown'?"
     },
     {
         "name": "Delete a word",
         "starting": "|The quick brown lazy fox",
         "target": "The quick brown fox|",
-        "description": "Delete the word 'lazy'"
+        "description": "Delete the word 'lazy'",
+        "hint": "Navigate to 'lazy' with w, then use dw to delete the word. Move to the end with $"
     },
     {
         "name": "Change word",
         "starting": "Hello |world",
         "target": "Hello |universe",
-        "description": "Change 'world' to 'universe'"
+        "description": "Change 'world' to 'universe'",
+        "hint": "Use cw to change the word, type the new text, then press Esc and move the cursor"
     },
     {
         "name": "Insert at beginning",
         "starting": "world",
         "target": "|Hello world",
-        "description": "Add 'Hello ' at the beginning"
+        "description": "Add 'Hello ' at the beginning",
+        "hint": "Use I to insert at the start of the line, type 'Hello ', then press Esc and move the cursor"
     }
 ]

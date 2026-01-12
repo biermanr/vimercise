@@ -386,13 +386,20 @@ function loadExercise(index) {
     startingWrapper.classList.remove('success');
     targetWrapper.classList.remove('success');
 
-    // Update UI
-    document.getElementById('exercise-number').textContent = index + 1;
-    document.getElementById('exercise-total').textContent = exercises.length;
+    // Update exercise name in header
+    document.getElementById('exercise-name').textContent = `Exercise: ${exercise.description}`;
 
-    // Update button states
-    document.getElementById('prev-exercise').disabled = index === 0;
-    document.getElementById('next-exercise').disabled = index === exercises.length - 1;
+    // Update hint text and reset to collapsed state
+    const hintElement = document.getElementById('hint-text');
+    const hintToggle = document.getElementById('hint-toggle');
+    if (hintElement) {
+        hintElement.textContent = exercise.hint || 'No hint available for this exercise.';
+        // Reset hint to collapsed state
+        hintElement.classList.add('hint-hidden');
+        if (hintToggle) {
+            hintToggle.classList.remove('expanded');
+        }
+    }
 
     // Create editors - target highlights the cursor position
     createEditor(startingParsed.text, startingCursorPos);
@@ -419,21 +426,6 @@ async function init() {
         }
         exercises = await response.json();
 
-        // Exercise navigation
-        document.getElementById('prev-exercise').addEventListener('click', () => {
-            if (currentExerciseIndex > 0) {
-                currentExerciseIndex--;
-                loadExercise(currentExerciseIndex);
-            }
-        });
-
-        document.getElementById('next-exercise').addEventListener('click', () => {
-            if (currentExerciseIndex < exercises.length - 1) {
-                currentExerciseIndex++;
-                loadExercise(currentExerciseIndex);
-            }
-        });
-
         // Reset button functionality
         document.getElementById('reset-btn').addEventListener('click', () => {
             loadExercise(currentExerciseIndex);
@@ -447,6 +439,16 @@ async function init() {
 
         // Clear progress button handler
         document.getElementById('clear-progress-btn').addEventListener('click', clearProgress);
+
+        // Hint toggle functionality
+        const hintToggle = document.getElementById('hint-toggle');
+        const hintText = document.getElementById('hint-text');
+        if (hintToggle && hintText) {
+            hintToggle.addEventListener('click', () => {
+                hintToggle.classList.toggle('expanded');
+                hintText.classList.toggle('hint-hidden');
+            });
+        }
     } catch (error) {
         console.error('Error initializing Vimercise:', error);
         alert('Failed to load exercises. Please make sure exercises.json is available.');
