@@ -12,59 +12,70 @@ let isSuccess = false;
 const STORAGE_KEY = 'vimercise-progress';
 const CUSTOM_EXERCISES_KEY = 'vimercise-custom-exercises';
 
-// Exercise sharing functions
-function encodeExercise(exercise) {
+// Exercise sharing functions using individual query parameters
+function buildShareUrl(exercise) {
     try {
-        const json = JSON.stringify(exercise);
-        return btoa(unescape(encodeURIComponent(json)));
+        const params = new URLSearchParams();
+
+        // Required fields
+        params.set('n', exercise.name);
+        params.set('d', exercise.description);
+        params.set('st', exercise.starting);
+        params.set('tt', exercise.target);
+
+        // Optional fields
+        if (exercise.category) {
+            params.set('c', exercise.category);
+        }
+        if (exercise.hint) {
+            params.set('h', exercise.hint);
+        }
+
+        const baseUrl = window.location.origin + window.location.pathname;
+        return `${baseUrl}?${params.toString()}`;
     } catch (e) {
-        console.error('Failed to encode exercise:', e);
+        console.error('Failed to build share URL:', e);
         return null;
     }
 }
 
-function decodeExercise(code) {
+function parseExerciseFromUrl() {
     try {
-        const json = decodeURIComponent(escape(atob(code)));
-        return JSON.parse(json);
+        const params = new URLSearchParams(window.location.search);
+
+        // Check if we have exercise parameters
+        if (!params.has('n') || !params.has('st') || !params.has('tt')) {
+            return null;
+        }
+
+        const exercise = {
+            name: params.get('n'),
+            description: params.get('d') || '',
+            starting: params.get('st'),
+            target: params.get('tt'),
+            custom: true
+        };
+
+        if (params.has('c')) {
+            exercise.category = params.get('c');
+        }
+        if (params.has('h')) {
+            exercise.hint = params.get('h');
+        }
+
+        return exercise;
     } catch (e) {
-        console.error('Failed to decode exercise:', e);
+        console.error('Failed to parse exercise from URL:', e);
         return null;
     }
 }
 
-// Copy exercise code to clipboard
-function copyExerciseCode(exercise) {
-    const code = encodeExercise(exercise);
-    if (!code) {
-        alert('Failed to encode exercise.');
-        return;
-    }
-
-    navigator.clipboard.writeText(code).then(() => {
-        alert('Exercise code copied to clipboard! Share it with others.');
-    }).catch(err => {
-        console.error('Failed to copy to clipboard:', err);
-        // Fallback: show the code in a prompt
-        prompt('Copy this exercise code:', code);
-    });
-}
-
-// Import exercise from code
-function importExerciseCode() {
-    const code = prompt('Paste the exercise code here:');
-    if (!code) return;
-
-    const exercise = decodeExercise(code.trim());
-    if (!exercise) {
-        alert('Invalid exercise code. Please check and try again.');
-        return;
-    }
-
+// Import exercise object and add to collection
+function importExercise(exercise, showAlerts = true) {
     // Validate exercise structure
     if (!exercise.name || !exercise.description || !exercise.starting || !exercise.target) {
-        alert('Invalid exercise format. Missing required fields.');
-        return;
+        if (showAlerts) alert('Invalid exercise format. Missing required fields.');
+        return null;
     }
 
     // Mark as custom and imported
@@ -76,8 +87,12 @@ function importExerciseCode() {
     );
 
     if (existingIndex !== -1) {
-        if (!confirm('An exercise with this name and content already exists. Import anyway?')) {
-            return;
+        if (showAlerts && !confirm('An exercise with this name and content already exists. Import anyway?')) {
+            return null;
+        }
+        // If it exists and we're not showing alerts (URL import), just load the existing one
+        if (!showAlerts) {
+            return existingIndex;
         }
     }
 
@@ -88,13 +103,51 @@ function importExerciseCode() {
 
     // Add to exercises array and update UI
     exercises.push(exercise);
-    renderProgressTable();
 
-    // Navigate to the imported exercise
-    currentExerciseIndex = exercises.length - 1;
-    loadExercise(currentExerciseIndex);
+    // Return the index of the new exercise
+    return exercises.length - 1;
+}
 
-    alert('Exercise imported successfully!');
+// Import exercise from user prompt (accepts JSON)
+function importExerciseCode() {
+    const code = prompt('Paste exercise JSON here:');
+    if (!code) return;
+
+    try {
+        const exercise = JSON.parse(code.trim());
+        const exerciseIndex = importExercise(exercise, true);
+
+        if (exerciseIndex !== null) {
+            renderProgressTable();
+            // Navigate to the imported exercise
+            currentExerciseIndex = exerciseIndex;
+            loadExercise(currentExerciseIndex);
+            alert('Exercise imported successfully!');
+        }
+    } catch (e) {
+        alert('Invalid JSON format. Please check and try again.');
+    }
+}
+
+// Check URL for shared exercise and auto-import
+function checkUrlForSharedExercise() {
+    const exercise = parseExerciseFromUrl();
+
+    if (exercise) {
+        // Import the exercise without showing alerts
+        const exerciseIndex = importExercise(exercise, false);
+
+        if (exerciseIndex !== null) {
+            // Clean up URL (remove query parameters)
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+
+            // Return the index to load this exercise
+            return exerciseIndex;
+        }
+    }
+
+    return null;
 }
 
 // Load custom exercises from localStorage
@@ -506,6 +559,13 @@ function loadExercise(index) {
         }
     }
 
+    // Update shareable URL
+    const shareUrlInput = document.getElementById('share-url-input');
+    if (shareUrlInput) {
+        const shareUrl = buildShareUrl(exercise);
+        shareUrlInput.value = shareUrl || '';
+    }
+
     // Create editors - target highlights the cursor position
     createEditor(startingParsed.text, startingCursorPos);
     createTargetView(exercise.target);
@@ -725,19 +785,18 @@ async function init() {
         const customExercises = loadCustomExercises();
         exercises = [...builtInExercises, ...customExercises];
 
+        // Check if there's a shared exercise in the URL
+        const sharedExerciseIndex = checkUrlForSharedExercise();
+
         // Reset button functionality
         document.getElementById('reset-btn').addEventListener('click', () => {
             loadExercise(currentExerciseIndex);
         });
 
-        // Share button functionality
-        document.getElementById('share-btn').addEventListener('click', () => {
-            const exercise = getCurrentExercise();
-            copyExerciseCode(exercise);
-        });
-
-        // Initial load
-        loadExercise(0);
+        // Initial load - use shared exercise if available, otherwise start at 0
+        const initialIndex = sharedExerciseIndex !== null ? sharedExerciseIndex : 0;
+        currentExerciseIndex = initialIndex;
+        loadExercise(initialIndex);
 
         // Initialize progress sidebar
         renderProgressTable();
@@ -750,8 +809,19 @@ async function init() {
             toggleCreateSection(true);
         });
 
-        // Import exercise button handler
-        document.getElementById('import-exercise-btn').addEventListener('click', importExerciseCode);
+        // Copy URL button handler
+        document.getElementById('copy-url-btn').addEventListener('click', () => {
+            const urlInput = document.getElementById('share-url-input');
+            if (urlInput && urlInput.value) {
+                navigator.clipboard.writeText(urlInput.value).then(() => {
+                    // Successfully copied - no alert
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    // Fallback: select the text
+                    urlInput.select();
+                });
+            }
+        });
 
         // Close create section button handler
         document.getElementById('close-create-btn').addEventListener('click', () => {

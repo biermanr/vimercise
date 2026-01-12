@@ -180,17 +180,9 @@ button:disabled:hover {
     background: #95a5a6;
 }
 
-#reset-btn, #share-btn {
+#reset-btn {
     padding: 6px 12px;
     font-size: 12px;
-}
-
-#share-btn {
-    background: #3498db;
-}
-
-#share-btn:hover {
-    background: #2980b9;
 }
 
 .cm-editor {
@@ -451,6 +443,68 @@ button:disabled:hover {
     margin-top: 0;
 }
 
+.share-url-section {
+    background: #f0f8ff;
+    border-left: 4px solid #3498db;
+}
+
+.share-url-section h2 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.share-url-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.share-url-input {
+    flex: 1;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    background: white;
+    color: #2c3e50;
+    cursor: text;
+    resize: none;
+    line-height: 1.5;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.share-url-input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.copy-url-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.copy-url-btn:hover {
+    background: #2980b9;
+}
+
+.copy-url-btn:active {
+    transform: translateY(1px);
+}
+
 @media (max-width: 768px) {
     .editor-header h2 {
         font-size: 16px;
@@ -466,13 +520,22 @@ button:disabled:hover {
         padding: 4px 8px;
     }
 
-    #reset-btn, #share-btn {
+    #reset-btn {
         font-size: 11px;
         padding: 5px 10px;
     }
 
     .hint-text {
         font-size: 13px;
+    }
+
+    .share-url-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .copy-url-btn {
+        width: 100%;
     }
 }
 

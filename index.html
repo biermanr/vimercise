@@ -27,7 +27,6 @@
                     <h2>Exercises</h2>
                     <div class="header-buttons">
                         <button id="create-exercise-btn" class="small-btn create-btn" title="Create custom exercise">+ Create</button>
-                        <button id="import-exercise-btn" class="small-btn import-btn" title="Import exercise from code">📥 Import</button>
                         <button id="clear-progress-btn" class="small-btn" title="Clear all progress">Reset All</button>
                     </div>
                 </div>
@@ -52,7 +51,6 @@
                     <div class="editor-header">
                         <h2 id="exercise-name">Starting Text (Editable)</h2>
                         <div class="editor-controls">
-                            <button id="share-btn" title="Copy exercise code to share">📋 Share</button>
                             <button id="reset-btn">Reset</button>
                             <div class="keystroke-counter">
                                 Keystrokes: <strong id="keystroke-count">0</strong>
@@ -81,6 +79,14 @@
                         <span class="hint-toggle-icon">▶</span>
                     </h2>
                     <p id="hint-text" class="hint-text hint-hidden"></p>
+                </div>
+
+                <div class="editor-section share-url-section">
+                    <h2>Shareable link to this exercise</h2>
+                    <div class="share-url-wrapper">
+                        <textarea id="share-url-input" class="share-url-input" readonly rows="3"></textarea>
+                        <button id="copy-url-btn" class="copy-url-btn" title="Copy to clipboard">📋 Copy</button>
+                    </div>
                 </div>
             </div>
         </div>
