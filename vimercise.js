@@ -125,20 +125,14 @@ const blockMouseSelection = EditorView.domEventHandlers({
     }
 });
 
-// Extension to track keystrokes and block when success achieved
-const keystrokeTracker = EditorView.domEventHandlers({
+// Extension to block keystrokes when success is achieved
+const successBlocker = EditorView.domEventHandlers({
     keydown: (event, view) => {
         // Block all keys if success is achieved
         if (isSuccess) {
             event.preventDefault();
             event.stopPropagation();
             return true;
-        }
-
-        // Don't count modifier keys alone
-        if (!['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(event.key)) {
-            keystrokeCount++;
-            updateKeystrokeCount();
         }
         return false;
     }
@@ -159,7 +153,7 @@ function createEditor(text, cursorPos) {
             basicSetup,
             EditorView.lineWrapping,
             blockMouseSelection,
-            keystrokeTracker,
+            successBlocker,
             readOnlyCompartment.of(EditorState.readOnly.of(false)),
             EditorView.updateListener.of((update) => {
                 if (update.docChanged || update.selectionSet) {
@@ -174,6 +168,19 @@ function createEditor(text, cursorPos) {
         state: editorState,
         parent: parent
     });
+
+    // Add keystroke tracking at the DOM level using capture phase
+    // This ensures we catch keystrokes before Vim processes them
+    editorView.dom.addEventListener('keydown', (event) => {
+        // Don't count if success is achieved
+        if (isSuccess) return;
+
+        // Don't count modifier keys alone
+        if (!['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape'].includes(event.key)) {
+            keystrokeCount++;
+            updateKeystrokeCount();
+        }
+    }, true); // true = use capture phase
 
     return editorView;
 }
