@@ -4,34 +4,119 @@
         "starting": "Hello World",
         "target": "Hello World!",
         "description": "Add an exclamation mark at the end",
-        "hint": "Use A to append at the end of the line, type !, then press Esc"
+        "hint": "Use A to append at the end of the line, type !, then press Esc",
+        "category": "Editing"
     },
     {
         "name": "Navigate to word",
         "starting": "|The quick brown fox",
         "target": "The quick |brown fox",
         "description": "Move cursor to the word 'brown'",
-        "hint": "Use w to move forward by words. Try counting: how many w's to reach 'brown'?"
+        "hint": "Use w to move forward by words. Try counting: how many w's to reach 'brown'?",
+        "category": "Movement"
     },
     {
         "name": "Delete a word",
         "starting": "|The quick brown lazy fox",
         "target": "The quick brown fox|",
         "description": "Delete the word 'lazy'",
-        "hint": "Navigate to 'lazy' with w, then use dw to delete the word. Move to the end with $"
+        "hint": "Navigate to 'lazy' with w, then use dw to delete the word. Move to the end with $",
+        "category": "Editing"
     },
     {
         "name": "Change word",
         "starting": "Hello |world",
         "target": "Hello |universe",
         "description": "Change 'world' to 'universe'",
-        "hint": "Use cw to change the word, type the new text, then press Esc and move the cursor"
+        "hint": "Use cw to change the word, type the new text, then press Esc and move the cursor",
+        "category": "Editing"
     },
     {
         "name": "Insert at beginning",
         "starting": "world",
         "target": "|Hello world",
         "description": "Add 'Hello ' at the beginning",
-        "hint": "Use I to insert at the start of the line, type 'Hello ', then press Esc and move the cursor"
+        "hint": "Use I to insert at the start of the line, type 'Hello ', then press Esc and move the cursor",
+        "category": "Editing"
+    },
+    {
+        "name": "Move to end of line",
+        "starting": "|The quick brown fox jumps",
+        "target": "The quick brown fox jumps|",
+        "description": "Move cursor to the end of the line",
+        "hint": "Use $ to jump to the end of the line",
+        "category": "Movement"
+    },
+    {
+        "name": "Move to start of line",
+        "starting": "The quick brown fox|",
+        "target": "|The quick brown fox",
+        "description": "Move cursor to the beginning of the line",
+        "hint": "Use 0 to jump to the start of the line, or ^ to jump to the first non-whitespace character",
+        "category": "Movement"
+    },
+    {
+        "name": "Move backwards by word",
+        "starting": "The quick brown fox|",
+        "target": "The |quick brown fox",
+        "description": "Move cursor backwards to the word 'quick'",
+        "hint": "Use b to move backwards by words. Count how many times you need to press b",
+        "category": "Movement"
+    },
+    {
+        "name": "Move to end of word",
+        "starting": "|The quick brown fox",
+        "target": "Th|e quick brown fox",
+        "description": "Move cursor to the end of the word 'The'",
+        "hint": "Use e to move to the end of the current word",
+        "category": "Movement"
+    },
+    {
+        "name": "Find character forward",
+        "starting": "|The quick brown fox",
+        "target": "The quick |brown fox",
+        "description": "Move cursor to the letter 'b' in 'brown'",
+        "hint": "Use fb to find the next 'b' character",
+        "category": "Movement"
+    },
+    {
+        "name": "Find character backward",
+        "starting": "The quick brown fox|",
+        "target": "The |quick brown fox",
+        "description": "Move cursor backwards to the letter 'q'",
+        "hint": "Use Fq to find the previous 'q' character (capital F searches backward)",
+        "category": "Movement"
+    },
+    {
+        "name": "Till character",
+        "starting": "|The quick brown fox",
+        "target": "The quic|k brown fox",
+        "description": "Move cursor till (just before) the letter 'k'",
+        "hint": "Use tk to move till the character 'k' (stops one character before)",
+        "category": "Movement"
+    },
+    {
+        "name": "Navigate down lines",
+        "starting": "|function hello() {\n    console.log('Hello');\n    return true;\n}",
+        "target": "function hello() {\n    console.log('Hello');\n    |return true;\n}",
+        "description": "Move cursor down to the 'return' line",
+        "hint": "Use j to move down lines, then use w or ^ to position the cursor correctly",
+        "category": "Movement"
+    },
+    {
+        "name": "Navigate to last line",
+        "starting": "|First line\nSecond line\nThird line\nFourth line\nFifth line",
+        "target": "First line\nSecond line\nThird line\nFourth line\n|Fifth line",
+        "description": "Jump to the last line",
+        "hint": "Use G (capital G) to jump to the last line",
+        "category": "Movement"
+    },
+    {
+        "name": "Navigate to first line",
+        "starting": "First line\nSecond line\nThird line\nFourth line\n|Fifth line",
+        "target": "|First line\nSecond line\nThird line\nFourth line\nFifth line",
+        "description": "Jump to the first line",
+        "hint": "Use gg to jump to the first line",
+        "category": "Movement"
     }
 ]

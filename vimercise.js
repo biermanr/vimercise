@@ -68,6 +68,10 @@ function renderProgressTable() {
 
         const exerciseData = progress.exercises[exercise.name];
 
+        const categoryCell = document.createElement('td');
+        categoryCell.className = 'category';
+        categoryCell.textContent = exercise.category || '';
+
         const nameCell = document.createElement('td');
         nameCell.className = 'exercise-name';
         nameCell.textContent = exercise.name;
@@ -87,8 +91,10 @@ function renderProgressTable() {
             keystrokesCell.appendChild(icon);
         }
 
+        row.appendChild(categoryCell);
         row.appendChild(nameCell);
         row.appendChild(keystrokesCell);
+
         tbody.appendChild(row);
     });
 

@@ -35,7 +35,7 @@ h1 {
 
 .editors-container {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 520px 1fr;
     gap: 20px;
     margin-bottom: 20px;
     align-items: start;
@@ -311,6 +311,15 @@ button:disabled:hover {
     color: #2c3e50;
     font-weight: 500;
     line-height: 1.4;
+}
+
+.category {
+    padding: 12px;
+    text-align: center;
+    width: 90px;
+    font-size: 12px;
+    color: #7f8c8d;
+    font-weight: 600;
 }
 
 .keystrokes {
