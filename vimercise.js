@@ -12,6 +12,91 @@ let isSuccess = false;
 const STORAGE_KEY = 'vimercise-progress';
 const CUSTOM_EXERCISES_KEY = 'vimercise-custom-exercises';
 
+// Exercise sharing functions
+function encodeExercise(exercise) {
+    try {
+        const json = JSON.stringify(exercise);
+        return btoa(unescape(encodeURIComponent(json)));
+    } catch (e) {
+        console.error('Failed to encode exercise:', e);
+        return null;
+    }
+}
+
+function decodeExercise(code) {
+    try {
+        const json = decodeURIComponent(escape(atob(code)));
+        return JSON.parse(json);
+    } catch (e) {
+        console.error('Failed to decode exercise:', e);
+        return null;
+    }
+}
+
+// Copy exercise code to clipboard
+function copyExerciseCode(exercise) {
+    const code = encodeExercise(exercise);
+    if (!code) {
+        alert('Failed to encode exercise.');
+        return;
+    }
+
+    navigator.clipboard.writeText(code).then(() => {
+        alert('Exercise code copied to clipboard! Share it with others.');
+    }).catch(err => {
+        console.error('Failed to copy to clipboard:', err);
+        // Fallback: show the code in a prompt
+        prompt('Copy this exercise code:', code);
+    });
+}
+
+// Import exercise from code
+function importExerciseCode() {
+    const code = prompt('Paste the exercise code here:');
+    if (!code) return;
+
+    const exercise = decodeExercise(code.trim());
+    if (!exercise) {
+        alert('Invalid exercise code. Please check and try again.');
+        return;
+    }
+
+    // Validate exercise structure
+    if (!exercise.name || !exercise.description || !exercise.starting || !exercise.target) {
+        alert('Invalid exercise format. Missing required fields.');
+        return;
+    }
+
+    // Mark as custom and imported
+    exercise.custom = true;
+
+    // Check if exercise already exists
+    const existingIndex = exercises.findIndex(ex =>
+        ex.name === exercise.name && ex.starting === exercise.starting && ex.target === exercise.target
+    );
+
+    if (existingIndex !== -1) {
+        if (!confirm('An exercise with this name and content already exists. Import anyway?')) {
+            return;
+        }
+    }
+
+    // Add to custom exercises in localStorage
+    const customExercises = loadCustomExercises();
+    customExercises.push(exercise);
+    localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(customExercises));
+
+    // Add to exercises array and update UI
+    exercises.push(exercise);
+    renderProgressTable();
+
+    // Navigate to the imported exercise
+    currentExerciseIndex = exercises.length - 1;
+    loadExercise(currentExerciseIndex);
+
+    alert('Exercise imported successfully!');
+}
+
 // Load custom exercises from localStorage
 function loadCustomExercises() {
     const stored = localStorage.getItem(CUSTOM_EXERCISES_KEY);
@@ -645,6 +730,12 @@ async function init() {
             loadExercise(currentExerciseIndex);
         });
 
+        // Share button functionality
+        document.getElementById('share-btn').addEventListener('click', () => {
+            const exercise = getCurrentExercise();
+            copyExerciseCode(exercise);
+        });
+
         // Initial load
         loadExercise(0);
 
@@ -658,6 +749,9 @@ async function init() {
         document.getElementById('create-exercise-btn').addEventListener('click', () => {
             toggleCreateSection(true);
         });
+
+        // Import exercise button handler
+        document.getElementById('import-exercise-btn').addEventListener('click', importExerciseCode);
 
         // Close create section button handler
         document.getElementById('close-create-btn').addEventListener('click', () => {

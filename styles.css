@@ -180,9 +180,17 @@ button:disabled:hover {
     background: #95a5a6;
 }
 
-#reset-btn {
+#reset-btn, #share-btn {
     padding: 6px 12px;
     font-size: 12px;
+}
+
+#share-btn {
+    background: #3498db;
+}
+
+#share-btn:hover {
+    background: #2980b9;
 }
 
 .cm-editor {
@@ -247,6 +255,14 @@ button:disabled:hover {
 
 .create-btn:hover {
     background: #27ae60;
+}
+
+.import-btn {
+    background: #3498db;
+}
+
+.import-btn:hover {
+    background: #2980b9;
 }
 
 .progress-table-wrapper {
@@ -450,7 +466,7 @@ button:disabled:hover {
         padding: 4px 8px;
     }
 
-    #reset-btn {
+    #reset-btn, #share-btn {
         font-size: 11px;
         padding: 5px 10px;
     }
