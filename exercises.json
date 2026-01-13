@@ -5,7 +5,7 @@
         "target": "The quick brown |fox broke the sound barrier",
         "description": "Move cursor to the start of the word 'fox'",
         "hint": "Use w to move forward by words",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Move to end of line",
@@ -13,7 +13,7 @@
         "target": "The cursor is all the way to the left, let's move it to the end of the line|",
         "description": "Move cursor to the end of the line",
         "hint": "Use $ to jump to the end of the line",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Move to start of line",
@@ -21,7 +21,7 @@
         "target": "|This time the cursor is already at the end, let's move it to the start",
         "description": "Move cursor to the beginning of the line",
         "hint": "Use 0 to jump to the start of the line, or ^ to jump to the first non-whitespace character",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Add exclamation",
@@ -29,7 +29,7 @@
         "target": "Hello World!",
         "description": "Add an exclamation mark at the end",
         "hint": "Use A to append at the end of the line, type !, then press Esc",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Delete a word",
@@ -37,7 +37,7 @@
         "target": "The quick brown fox|",
         "description": "Delete the word 'lazy'",
         "hint": "Navigate to 'lazy' with w, then use dw to delete the word. Move to the end with $",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Change word",
@@ -45,7 +45,7 @@
         "target": "Hello universe",
         "description": "Change 'world' to 'universe'",
         "hint": "Using cw is a bit faster than dw since it clears the word and puts you in insert mode",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Move backwards by word",
@@ -53,7 +53,7 @@
         "target": "The |quick brown fox",
         "description": "Move cursor backwards to the word 'quick'",
         "hint": "Use b to move backwards by words. Count how many times you need to press b",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Move to end of word",
@@ -61,7 +61,7 @@
         "target": "Th|e quick brown fox",
         "description": "Move cursor to the end of the word 'The'",
         "hint": "Use e to move to the end of the current word",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Navigate down lines",
@@ -69,7 +69,7 @@
         "target": "function hello() {\n    console.log('Hello');\n    |return true;\n}",
         "description": "Move cursor down to the 'return' line",
         "hint": "Use j to move down lines, then use w or ^ to position the cursor correctly",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Navigate to last line",
@@ -77,7 +77,7 @@
         "target": "First line\nSecond line\nThird line\nFourth line\n|Fifth line",
         "description": "Jump to the last line",
         "hint": "Use G (capital G) to jump to the last line",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Navigate to first line",
@@ -85,7 +85,7 @@
         "target": "|First line\nSecond line\nThird line\nFourth line\nFifth line",
         "description": "Jump to the first line",
         "hint": "Use gg to jump to the first line",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Multi-line navigation",
@@ -93,7 +93,7 @@
         "target": "Start here x and somehow needed\nto make your way all the way towards\nthe end of this line to get here y|",
         "description": "Navigate from [x] at the beginning to [y] at the end across multiple lines",
         "hint": "Use G to jump to last line, then $ to move to end of line",
-        "category": "Movement"
+        "category": "1. Movement"
     },
     {
         "name": "Fix typo with insert mode",
@@ -101,7 +101,7 @@
         "target": "Fix the typo|",
         "description": "Fix the typo 'Fx' to 'Fix' using insert mode",
         "hint": "Position on 'x', use i to enter insert mode, type 'i', then Esc",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Fix typo with delete",
@@ -109,7 +109,7 @@
         "target": "Fix the typo|",
         "description": "Fix the typo 'Fixx' to 'Fix' using the x command",
         "hint": "Position on the extra 'x' using l or w, then press x to delete it",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Add missing letter",
@@ -117,7 +117,7 @@
         "target": "Fix this line by adding the missing letter|",
         "description": "Add the missing 'r' at the end",
         "hint": "Use A to append at end of line, type 'r', then Esc",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Delete multiple words",
@@ -125,7 +125,7 @@
         "target": "VIM awesome and powerful",
         "description": "Delete the next 2 words 'IS LAME'",
         "hint": "Use d2w to delete 2 words, or use w to navigate then dw twice",
-        "category": "Editing"
+        "category": "2. Editing"
     },
     {
         "name": "Change quoted word",
@@ -133,7 +133,7 @@
         "target": "Translate \"hello\" to English",
         "description": "Change the word inside quotes from 'hola' to 'hello'",
         "hint": "Use ci\" to change inside quotes, type 'hello', then Esc",
-        "category": "Text Objects"
+        "category": "3. Text Objects"
     },
     {
         "name": "Remove function arguments",
@@ -141,7 +141,7 @@
         "target": "def foo(|):",
         "description": "Remove the function arguments",
         "hint": "Use ci( to change inside parentheses, then immediately press Esc",
-        "category": "Text Objects"
+        "category": "3. Text Objects"
     },
     {
         "name": "Delete content in quotes",
@@ -149,7 +149,7 @@
         "target": "Lincoln said \"|\"",
         "description": "Delete what's inside the quotes",
         "hint": "Use di\" to delete inside quotes",
-        "category": "Text Objects"
+        "category": "3. Text Objects"
     },
     {
         "name": "Append trademark symbols",
@@ -157,7 +157,7 @@
         "target": "Oreos(Tm)\nCookies\nGatorade(Tm)\nSports drink\nTissues\nKleenex(Tm)",
         "description": "Replace each * with (Tm)",
         "hint": "Use f* to find *, then r( to replace with '(', then a to append, type 'Tm)', repeat with . for next one",
-        "category": "Dot Command"
+        "category": "4. Dot Command"
     },
     {
         "name": "Remove python dict contents",
@@ -165,7 +165,7 @@
         "target": "data = {}",
         "description": "Delete the dictionary using % to match brackets",
         "hint": "Curly brackets are text objects! Try di{",
-        "category": "Text Objects"
+        "category": "3. Text Objects"
     },
     {
         "name": "Yank and paste with dot",
@@ -173,7 +173,7 @@
         "target": "First line\n\nSecond line\n\nThird line\n\nFourth line\n",
         "description": "Add empty lines between all text lines",
         "hint": "Use O to insert line above, press Esc, use yy to yank empty line, move with j, use p to paste, repeat with j. for remaining lines",
-        "category": "Dot Command"
+        "category": "4. Dot Command"
     },
     {
         "name": "Delete words with capitals",
@@ -181,7 +181,7 @@
         "target": "every on that capital",
         "description": "Delete each word that contains a capital letter",
         "hint": "Use dw to delete word, then w to skip lowercase word, use . to repeat delete on next capital word",
-        "category": "Dot Command"
+        "category": "4. Dot Command"
     },
     {
         "name": "Split arguments over lines",
@@ -189,7 +189,7 @@
         "target": "samtools view \\\n  -f 3 \\\n  -F 3584 \\\n  -L chr1.bed \\\n  -o filtered_reads.sam \\\n  -U removed_reads.sam \\\n  mouse_reads.bam",
         "description": "Splitting a long command with many arguments over multiple lines",
         "hint": "I would do this with a combination of forward-to-space followed by typing the , going to the line with enter then going back to normal mode, and using ; to repeat the movement twice, then . to repeat the command, indenting etc. might need to do a final indenting after the first line, this becomes ;;.;;.;;.",
-        "category": "Complicated"
+        "category": "7. Multi-step"
     },
     {
         "name": "Asserts in a list",
@@ -197,7 +197,7 @@
         "target": "assert lines[0] == 'blah'\nassert lines[1] == 'bleh'\nassert lines[2] == 'bluh'\nassert lines[3] == 'blih'\nassert lines[4] == 'blyh'",
         "description": "Add test cases for a python list of strings",
         "hint": "Make a macro to copy the line, paste, and increment with yypC-a",
-        "category": "Macros and Registers"
+        "category": "6. Macros and Registers"
     },
     {
         "name": "Change upper/lowercase of all letters",
@@ -205,7 +205,7 @@
         "target": "Oh no! The upper/lower case. It is completely swapped!",
         "description": "Case switching",
         "hint": "Kind of a gimmick since you're unlikely to be in this situation, but you can do this in Visual Line mode with ~",
-        "category": "Visual"
+        "category": "5. Visual"
     },
     {
         "name": "Change column",
@@ -213,7 +213,7 @@
         "target": "ABCD\nABCD\nABCD\nABCD",
         "description": "Change a column",
         "hint": "C-v to go into Visual Column mode then replace with r",
-        "category": "Visual"
+        "category": "5. Visual"
     },
     {
         "name": "Center Haiku",
@@ -221,7 +221,7 @@
         "target": "----------------------------------\n*    Whole seasons are spent     *\n* mastering the form, the style. *\n*      None calls it easy.       *\n----------------------------------",
         "description": "Center a Haiku",
         "hint": "Use Visual Line mode replace for the header and footer.",
-        "category": "Visual"
+        "category": "5. Visual"
     },
     {
         "name": "Numbered list",
@@ -229,7 +229,7 @@
         "target": " 1) Iron Man\n 2) The Incredible Hulk\n 3) Iran Man 2",
         "description": "Convert a list to be numbered",
         "hint": "C-v to select bullet points then c1) to replace with 1",
-        "category": "Visual"
+        "category": "5. Visual"
     },
     {
         "name": "Format table",
@@ -237,6 +237,6 @@
         "target": "---------------------------------------------------------------------\nNAME          ||  COURSE  |  ITEM         |   COMMENT                |\n---------------------------------------------------------------------\nTroy          |  Main    |  Lasagna      |                          |\nSteve         |  Side    |  Greek salad  |   Not vegan!             |\nBarbara Anne  |  Drinks  |  Punch        |   A really long comment  |\n---------------------------------------------------------------------",
         "description": "Formatting text into a table",
         "hint": "Lots of work with Visual Block mode",
-        "category": "Visual"
+        "category": "5. Visual"
     }
 ]

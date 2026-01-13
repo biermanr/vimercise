@@ -108,27 +108,6 @@ function importExercise(exercise, showAlerts = true) {
     return exercises.length - 1;
 }
 
-// Import exercise from user prompt (accepts JSON)
-function importExerciseCode() {
-    const code = prompt('Paste exercise JSON here:');
-    if (!code) return;
-
-    try {
-        const exercise = JSON.parse(code.trim());
-        const exerciseIndex = importExercise(exercise, true);
-
-        if (exerciseIndex !== null) {
-            renderProgressTable();
-            // Navigate to the imported exercise
-            currentExerciseIndex = exerciseIndex;
-            loadExercise(currentExerciseIndex);
-            alert('Exercise imported successfully!');
-        }
-    } catch (e) {
-        alert('Invalid JSON format. Please check and try again.');
-    }
-}
-
 // Check URL for shared exercise and auto-import
 function checkUrlForSharedExercise() {
     const exercise = parseExerciseFromUrl();

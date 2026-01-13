@@ -249,14 +249,6 @@ button:disabled:hover {
     background: #27ae60;
 }
 
-.import-btn {
-    background: #3498db;
-}
-
-.import-btn:hover {
-    background: #2980b9;
-}
-
 .progress-table-wrapper {
     overflow-y: auto;
     flex: 1;
