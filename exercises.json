@@ -24,30 +24,6 @@
         "category": "1. Movement"
     },
     {
-        "name": "Add exclamation",
-        "starting": "Hello World",
-        "target": "Hello World!",
-        "description": "Add an exclamation mark at the end",
-        "hint": "Use A to append at the end of the line, type !, then press Esc",
-        "category": "2. Editing"
-    },
-    {
-        "name": "Delete a word",
-        "starting": "|The quick brown lazy fox",
-        "target": "The quick brown fox|",
-        "description": "Delete the word 'lazy'",
-        "hint": "Navigate to 'lazy' with w, then use dw to delete the word. Move to the end with $",
-        "category": "2. Editing"
-    },
-    {
-        "name": "Change word",
-        "starting": "Hello |world",
-        "target": "Hello universe",
-        "description": "Change 'world' to 'universe'",
-        "hint": "Using cw is a bit faster than dw since it clears the word and puts you in insert mode",
-        "category": "2. Editing"
-    },
-    {
         "name": "Move backwards by word",
         "starting": "The quick brown fox|",
         "target": "The |quick brown fox",
@@ -94,6 +70,30 @@
         "description": "Navigate from [x] at the beginning to [y] at the end across multiple lines",
         "hint": "Use G to jump to last line, then $ to move to end of line",
         "category": "1. Movement"
+    },
+    {
+        "name": "Add exclamation",
+        "starting": "Hello World",
+        "target": "Hello World!",
+        "description": "Add an exclamation mark at the end",
+        "hint": "Use A to append at the end of the line, type !, then press Esc",
+        "category": "2. Editing"
+    },
+    {
+        "name": "Delete a word",
+        "starting": "|The quick brown lazy fox",
+        "target": "The quick brown fox|",
+        "description": "Delete the word 'lazy'",
+        "hint": "Navigate to 'lazy' with w, then use dw to delete the word. Move to the end with $",
+        "category": "2. Editing"
+    },
+    {
+        "name": "Change word",
+        "starting": "Hello |world",
+        "target": "Hello universe",
+        "description": "Change 'world' to 'universe'",
+        "hint": "Using cw is a bit faster than dw since it clears the word and puts you in insert mode",
+        "category": "2. Editing"
     },
     {
         "name": "Fix typo with insert mode",
@@ -152,20 +152,20 @@
         "category": "3. Text Objects"
     },
     {
-        "name": "Append trademark symbols",
-        "starting": "Oreos*\nCookies\nGatorade*\nSports drink\nTissues\nKleenex*",
-        "target": "Oreos(Tm)\nCookies\nGatorade(Tm)\nSports drink\nTissues\nKleenex(Tm)",
-        "description": "Replace each * with (Tm)",
-        "hint": "Use f* to find *, then r( to replace with '(', then a to append, type 'Tm)', repeat with . for next one",
-        "category": "4. Dot Command"
-    },
-    {
         "name": "Remove python dict contents",
         "starting": "data = {\n  \"name\": \"John\",\n  \"age\": 30,\n  \"city\": \"NYC\"\n}",
         "target": "data = {}",
         "description": "Delete the dictionary using % to match brackets",
         "hint": "Curly brackets are text objects! Try di{",
         "category": "3. Text Objects"
+    },
+    {
+        "name": "Append trademark symbols",
+        "starting": "Oreos*\nCookies\nGatorade*\nSports drink\nTissues\nKleenex*",
+        "target": "Oreos(Tm)\nCookies\nGatorade(Tm)\nSports drink\nTissues\nKleenex(Tm)",
+        "description": "Replace each * with (Tm)",
+        "hint": "Use f* to find *, then r( to replace with '(', then a to append, type 'Tm)', repeat with . for next one",
+        "category": "4. Dot Command"
     },
     {
         "name": "Yank and paste with dot",
@@ -182,22 +182,6 @@
         "description": "Delete each word that contains a capital letter",
         "hint": "Use dw to delete word, then w to skip lowercase word, use . to repeat delete on next capital word",
         "category": "4. Dot Command"
-    },
-    {
-        "name": "Split arguments over lines",
-        "starting": "samtools view -f 3 -F 3584 -L chr1.bed -o filtered_reads.sam -U removed_reads.sam mouse_reads.bam",
-        "target": "samtools view \\\n  -f 3 \\\n  -F 3584 \\\n  -L chr1.bed \\\n  -o filtered_reads.sam \\\n  -U removed_reads.sam \\\n  mouse_reads.bam",
-        "description": "Splitting a long command with many arguments over multiple lines",
-        "hint": "I would do this with a combination of forward-to-space followed by typing the , going to the line with enter then going back to normal mode, and using ; to repeat the movement twice, then . to repeat the command, indenting etc. might need to do a final indenting after the first line, this becomes ;;.;;.;;.",
-        "category": "7. Multi-step"
-    },
-    {
-        "name": "Asserts in a list",
-        "starting": "assert lines[0] == 'blah'",
-        "target": "assert lines[0] == 'blah'\nassert lines[1] == 'bleh'\nassert lines[2] == 'bluh'\nassert lines[3] == 'blih'\nassert lines[4] == 'blyh'",
-        "description": "Add test cases for a python list of strings",
-        "hint": "Make a macro to copy the line, paste, and increment with yypC-a",
-        "category": "6. Macros and Registers"
     },
     {
         "name": "Change upper/lowercase of all letters",
@@ -238,5 +222,21 @@
         "description": "Formatting text into a table",
         "hint": "Lots of work with Visual Block mode",
         "category": "5. Visual"
+    },
+    {
+        "name": "Asserts in a list",
+        "starting": "assert lines[0] == 'blah'",
+        "target": "assert lines[0] == 'blah'\nassert lines[1] == 'bleh'\nassert lines[2] == 'bluh'\nassert lines[3] == 'blih'\nassert lines[4] == 'blyh'",
+        "description": "Add test cases for a python list of strings",
+        "hint": "Make a macro to copy the line, paste, and increment with yypC-a",
+        "category": "6. Macros and Registers"
+    },
+    {
+        "name": "Split arguments over lines",
+        "starting": "samtools view -f 3 -F 3584 -L chr1.bed -o filtered_reads.sam -U removed_reads.sam mouse_reads.bam",
+        "target": "samtools view \\\n  -f 3 \\\n  -F 3584 \\\n  -L chr1.bed \\\n  -o filtered_reads.sam \\\n  -U removed_reads.sam \\\n  mouse_reads.bam",
+        "description": "Splitting a long command with many arguments over multiple lines",
+        "hint": "I would do this with a combination of forward-to-space followed by typing the , going to the line with enter then going back to normal mode, and using ; to repeat the movement twice, then . to repeat the command, indenting etc. might need to do a final indenting after the first line, this becomes ;;.;;.;;.",
+        "category": "7. Multi-step"
     }
 ]

@@ -344,6 +344,28 @@ function isInNormalMode(view) {
     return !vimState.insertMode && !vimState.visualMode && cm.state.keyMap !== 'vim-replace';
 }
 
+// Function to show success prompt
+function showSuccessPrompt() {
+    // Check if prompt already exists
+    let prompt = document.getElementById('success-prompt');
+    if (!prompt) {
+        prompt = document.createElement('div');
+        prompt.id = 'success-prompt';
+        prompt.className = 'success-prompt';
+        prompt.innerHTML = 'Press <strong>R</strong> to retry or <strong>Enter</strong> to advance to next exercise';
+        startingWrapper.appendChild(prompt);
+    }
+    prompt.style.display = 'block';
+}
+
+// Function to hide success prompt
+function hideSuccessPrompt() {
+    const prompt = document.getElementById('success-prompt');
+    if (prompt) {
+        prompt.style.display = 'none';
+    }
+}
+
 // Function to check if text and cursor position match target
 function checkSuccess(view) {
     const exercise = getCurrentExercise();
@@ -378,6 +400,9 @@ function checkSuccess(view) {
 
             // Save progress
             updateExerciseProgress(exercise.name, keystrokeCount);
+
+            // Show success prompt
+            showSuccessPrompt();
         }
     } else {
         if (isSuccess) {
@@ -392,6 +417,9 @@ function checkSuccess(view) {
 
             // Restore focus to the editor
             view.focus();
+
+            // Hide success prompt
+            hideSuccessPrompt();
         }
     }
 }
@@ -583,6 +611,9 @@ function loadExercise(index) {
     startingWrapper.classList.remove('success');
     targetWrapper.classList.remove('success');
 
+    // Hide success prompt
+    hideSuccessPrompt();
+
     // Update exercise name in header
     document.getElementById('exercise-name').textContent = `Exercise: ${exercise.description}`;
 
@@ -618,6 +649,22 @@ function loadExercise(index) {
 
     // Update sidebar active state
     renderProgressTable();
+}
+
+// Function to advance to next exercise
+function advanceToNextExercise() {
+    if (currentExerciseIndex < exercises.length - 1) {
+        currentExerciseIndex++;
+        loadExercise(currentExerciseIndex);
+    } else {
+        // If at last exercise, show a message
+        alert('You\'re at the last exercise');
+    }
+}
+
+// Function to retry current exercise
+function retryCurrentExercise() {
+    loadExercise(currentExerciseIndex);
 }
 
 // Create Exercise functionality
@@ -884,6 +931,20 @@ async function init() {
                 hintText.classList.toggle('hint-hidden');
             });
         }
+
+        // Global keyboard handler for success state navigation
+        document.addEventListener('keydown', (event) => {
+            // Only handle these keys when success is achieved
+            if (!isSuccess) return;
+
+            if (event.key === 'r' || event.key === 'R') {
+                event.preventDefault();
+                retryCurrentExercise();
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                advanceToNextExercise();
+            }
+        });
     } catch (error) {
         console.error('Error initializing Vimercise:', error);
         alert('Failed to load exercises. Please make sure exercises.json is available.');
