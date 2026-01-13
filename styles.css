@@ -282,9 +282,62 @@ button:disabled:hover {
     background: #a0aec0;
 }
 
+.category-section {
+    margin-bottom: 16px;
+}
+
+.category-section:last-child {
+    margin-bottom: 0;
+}
+
+.category-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 8px 0;
+    padding: 8px 12px;
+    background: #3498db;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, margin-bottom 0.3s ease;
+}
+
+.category-header:hover {
+    background: #2980b9;
+}
+
+.category-toggle-icon {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.category-header:not(.collapsed) .category-toggle-icon {
+    transform: rotate(90deg);
+}
+
+.category-header.collapsed {
+    margin-bottom: 0;
+}
+
+.category-table {
+    overflow: hidden;
+}
+
+.category-table.collapsed {
+    display: none;
+}
+
 .progress-table {
     width: 100%;
     border-collapse: collapse;
+    margin-bottom: 0;
 }
 
 .progress-table th {

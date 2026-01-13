@@ -204,54 +204,116 @@ function updateExerciseProgress(exerciseName, keystrokeCount) {
 
 // Render the progress table
 function renderProgressTable() {
-    const tbody = document.getElementById('progress-table-body');
-    if (!tbody) return; // Guard for initial load
+    const container = document.getElementById('progress-table-container');
+    if (!container) return; // Guard for initial load
 
     const progress = loadProgress();
-    tbody.innerHTML = '';
+    container.innerHTML = '';
 
+    // Group exercises by category
+    const exercisesByCategory = {};
     exercises.forEach((exercise, index) => {
-        const row = document.createElement('tr');
-        row.className = 'progress-row';
-        if (index === currentExerciseIndex) {
-            row.classList.add('active');
+        const category = exercise.category || 'Uncategorized';
+        if (!exercisesByCategory[category]) {
+            exercisesByCategory[category] = [];
         }
-        row.dataset.exerciseIndex = index;
+        exercisesByCategory[category].push({ exercise, index });
+    });
 
-        const exerciseData = progress.exercises[exercise.name];
+    // Create a table for each category
+    Object.keys(exercisesByCategory).sort().forEach(category => {
+        // Create category section
+        const categorySection = document.createElement('div');
+        categorySection.className = 'category-section';
 
-        const categoryCell = document.createElement('td');
-        categoryCell.className = 'category';
-        categoryCell.textContent = exercise.category || '';
+        // Create category header with toggle icon
+        const categoryHeader = document.createElement('h3');
+        categoryHeader.className = 'category-header collapsed';
 
-        const nameCell = document.createElement('td');
-        nameCell.className = 'exercise-name';
-        nameCell.textContent = exercise.name;
+        const headerText = document.createElement('span');
+        headerText.textContent = category;
 
-        const keystrokesCell = document.createElement('td');
-        keystrokesCell.className = 'keystrokes';
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'category-toggle-icon';
+        toggleIcon.textContent = '▶';
 
-        if (exerciseData && exerciseData.solved) {
-            const badge = document.createElement('span');
-            badge.className = 'keystroke-badge';
-            badge.textContent = exerciseData.minKeystrokes;
-            keystrokesCell.appendChild(badge);
-        } else {
-            const icon = document.createElement('span');
-            icon.className = 'unsolved-icon';
-            icon.textContent = '☐';
-            keystrokesCell.appendChild(icon);
+        categoryHeader.appendChild(toggleIcon);
+        categoryHeader.appendChild(headerText);
+        categorySection.appendChild(categoryHeader);
+
+        // Create table for this category
+        const table = document.createElement('table');
+        table.className = 'progress-table category-table collapsed';
+
+        // Create table header
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th>Exercise</th>
+                <th>Keystrokes</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        // Create table body
+        const tbody = document.createElement('tbody');
+        exercisesByCategory[category].forEach(({ exercise, index }) => {
+            const row = document.createElement('tr');
+            row.className = 'progress-row';
+            if (index === currentExerciseIndex) {
+                row.classList.add('active');
+            }
+            row.dataset.exerciseIndex = index;
+
+            const exerciseData = progress.exercises[exercise.name];
+
+            const nameCell = document.createElement('td');
+            nameCell.className = 'exercise-name';
+            nameCell.textContent = exercise.name;
+
+            const keystrokesCell = document.createElement('td');
+            keystrokesCell.className = 'keystrokes';
+
+            if (exerciseData && exerciseData.solved) {
+                const badge = document.createElement('span');
+                badge.className = 'keystroke-badge';
+                badge.textContent = exerciseData.minKeystrokes;
+                keystrokesCell.appendChild(badge);
+            } else {
+                const icon = document.createElement('span');
+                icon.className = 'unsolved-icon';
+                icon.textContent = '☐';
+                keystrokesCell.appendChild(icon);
+            }
+
+            row.appendChild(nameCell);
+            row.appendChild(keystrokesCell);
+
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        categorySection.appendChild(table);
+        container.appendChild(categorySection);
+
+        // Add click handler for category toggle
+        categoryHeader.addEventListener('click', () => {
+            categoryHeader.classList.toggle('collapsed');
+            table.classList.toggle('collapsed');
+        });
+
+        // Auto-expand category if it contains the active exercise
+        const hasActiveExercise = exercisesByCategory[category].some(
+            ({ index }) => index === currentExerciseIndex
+        );
+        if (hasActiveExercise) {
+            categoryHeader.classList.remove('collapsed');
+            table.classList.remove('collapsed');
         }
-
-        row.appendChild(categoryCell);
-        row.appendChild(nameCell);
-        row.appendChild(keystrokesCell);
-
-        tbody.appendChild(row);
     });
 
     // Add click handlers for navigation
-    tbody.querySelectorAll('.progress-row').forEach(row => {
+    container.querySelectorAll('.progress-row').forEach(row => {
         row.addEventListener('click', () => {
             const index = parseInt(row.dataset.exerciseIndex);
             currentExerciseIndex = index;
@@ -262,10 +324,8 @@ function renderProgressTable() {
 
 // Clear all progress
 function clearProgress() {
-    if (confirm('Clear all progress? This cannot be undone.')) {
-        localStorage.removeItem(STORAGE_KEY);
-        renderProgressTable();
-    }
+    localStorage.removeItem(STORAGE_KEY);
+    renderProgressTable();
 }
 
 // Compartment for controlling read-only state
