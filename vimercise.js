@@ -17,11 +17,11 @@ function buildShareUrl(exercise) {
     try {
         const params = new URLSearchParams();
 
-        // Required fields
+        // Required fields (cursor positions are encoded in the text via underlined characters)
         params.set('n', exercise.name);
         params.set('d', exercise.description);
-        params.set('st', exercise.starting);
-        params.set('tt', exercise.target);
+        params.set('st', exercise.start);
+        params.set('tt', exercise.final);
 
         // Optional fields
         if (exercise.category) {
@@ -48,11 +48,12 @@ function parseExerciseFromUrl() {
             return null;
         }
 
+        // Cursor positions are encoded in the text via underlined characters
         const exercise = {
             name: params.get('n'),
             description: params.get('d') || '',
-            starting: params.get('st'),
-            target: params.get('tt'),
+            start: params.get('st'),
+            final: params.get('tt'),
             custom: true
         };
 
@@ -73,7 +74,7 @@ function parseExerciseFromUrl() {
 // Import exercise object and add to collection
 function importExercise(exercise, showAlerts = true) {
     // Validate exercise structure
-    if (!exercise.name || !exercise.description || !exercise.starting || !exercise.target) {
+    if (!exercise.name || !exercise.description || !exercise.start || !exercise.final) {
         if (showAlerts) alert('Invalid exercise format. Missing required fields.');
         return null;
     }
@@ -83,7 +84,7 @@ function importExercise(exercise, showAlerts = true) {
 
     // Check if exercise already exists
     const existingIndex = exercises.findIndex(ex =>
-        ex.name === exercise.name && ex.starting === exercise.starting && ex.target === exercise.target
+        ex.name === exercise.name && ex.start === exercise.start && ex.final === exercise.final
     );
 
     if (existingIndex !== -1) {
@@ -127,6 +128,135 @@ function checkUrlForSharedExercise() {
     }
 
     return null;
+}
+
+// Convert exercise to YAML format
+// Note: Cursor positions should be encoded in start/final text using underlined characters
+function exerciseToYaml(exercise) {
+    let yaml = `- name: ${escapeYamlString(exercise.name)}\n`;
+    yaml += `  category: ${escapeYamlString(exercise.category || 'Custom')}\n`;
+    yaml += `  description: ${escapeYamlString(exercise.description)}\n`;
+
+    if (exercise.hint) {
+        yaml += `  hint: ${escapeYamlString(exercise.hint)}\n`;
+    }
+
+    // Use block scalar for multi-line, simple string otherwise
+    if (exercise.start.includes('\n')) {
+        yaml += `  start: |-\n${exercise.start.split('\n').map(l => '    ' + l).join('\n')}\n`;
+    } else {
+        yaml += `  start: ${escapeYamlString(exercise.start)}\n`;
+    }
+
+    if (exercise.final.includes('\n')) {
+        yaml += `  final: |-\n${exercise.final.split('\n').map(l => '    ' + l).join('\n')}\n`;
+    } else {
+        yaml += `  final: ${escapeYamlString(exercise.final)}\n`;
+    }
+
+    return yaml;
+}
+
+// Escape YAML special characters in strings
+function escapeYamlString(str) {
+    if (!str) return "''";
+    // Check if string needs quoting
+    if (str.includes(':') || str.includes('#') || str.includes("'") ||
+        str.includes('"') || str.startsWith(' ') || str.endsWith(' ') ||
+        str.includes('\n')) {
+        // Use single quotes and escape internal single quotes
+        return "'" + str.replace(/'/g, "''") + "'";
+    }
+    return str;
+}
+
+// Export all custom exercises to YAML
+function exportExercises() {
+    // Get custom exercises only (not built-in)
+    const customExercises = loadCustomExercises();
+
+    if (customExercises.length === 0) {
+        alert('No custom exercises to export. Create some exercises first!');
+        return;
+    }
+
+    let yaml = '# Vimercise Custom Exercises\n';
+    yaml += '# Import this file to add these exercises to Vimercise\n\n';
+
+    customExercises.forEach(exercise => {
+        yaml += exerciseToYaml(exercise) + '\n';
+    });
+
+    // Create and download the file
+    const blob = new Blob([yaml], { type: 'text/yaml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vimercise-exercises.yaml';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Import exercises from YAML file
+function importExercisesFromYaml(yamlContent) {
+    try {
+        const importedExercises = jsyaml.load(yamlContent);
+
+        if (!Array.isArray(importedExercises)) {
+            alert('Invalid YAML format. Expected an array of exercises.');
+            return;
+        }
+
+        let importedCount = 0;
+        let skippedCount = 0;
+
+        importedExercises.forEach(exercise => {
+            // Validate required fields
+            if (!exercise.name || !exercise.start || !exercise.final) {
+                skippedCount++;
+                return;
+            }
+
+            // Mark as custom
+            exercise.custom = true;
+            exercise.category = exercise.category || 'Imported';
+
+            // Check if already exists
+            const exists = exercises.some(ex =>
+                ex.name === exercise.name &&
+                ex.start === exercise.start &&
+                ex.final === exercise.final
+            );
+
+            if (exists) {
+                skippedCount++;
+                return;
+            }
+
+            // Add to custom exercises in localStorage
+            const customExercises = loadCustomExercises();
+            customExercises.push(exercise);
+            localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(customExercises));
+
+            // Add to exercises array
+            exercises.push(exercise);
+            importedCount++;
+        });
+
+        // Update UI
+        renderProgressTable();
+
+        if (importedCount > 0) {
+            alert(`Imported ${importedCount} exercise(s).${skippedCount > 0 ? ` Skipped ${skippedCount} (duplicates or invalid).` : ''}`);
+        } else {
+            alert('No new exercises imported. All exercises already exist or are invalid.');
+        }
+    } catch (e) {
+        console.error('Failed to import exercises:', e);
+        alert('Failed to parse YAML file. Please check the format.');
+    }
 }
 
 // Load custom exercises from localStorage
@@ -315,16 +445,86 @@ const editorWrappers = document.querySelectorAll('.editor-section .editor-wrappe
 const startingWrapper = editorWrappers[0];
 const targetWrapper = editorWrappers[1];
 
-// Parse text and extract cursor position (marked with |)
-function parseTextWithCursor(text) {
-    const cursorIndex = text.indexOf('|');
-    if (cursorIndex === -1) {
-        return { text, cursorPos: null };
+// Build mapping from mathematical monospace characters to ASCII
+const COMBINING_UNDERLINE = '\u0332';
+const mathToAscii = new Map();
+
+// Lowercase a-z: U+1D68A to U+1D6A3
+for (let i = 0; i < 26; i++) {
+    mathToAscii.set(String.fromCodePoint(0x1D68A + i), String.fromCharCode(97 + i));
+}
+// Uppercase A-Z: U+1D670 to U+1D689
+for (let i = 0; i < 26; i++) {
+    mathToAscii.set(String.fromCodePoint(0x1D670 + i), String.fromCharCode(65 + i));
+}
+// Digits 0-9: U+1D7F6 to U+1D7FF
+for (let i = 0; i < 10; i++) {
+    mathToAscii.set(String.fromCodePoint(0x1D7F6 + i), String.fromCharCode(48 + i));
+}
+
+// Parse text and extract cursor position from underlined characters
+// Detects characters followed by combining underline (U+0332) and extracts cursor position
+function parseUnderlinedCursor(text) {
+    let cursorPos = null;
+    let result = '';
+    let resultPos = 0;
+
+    // Use Array.from to properly iterate over code points (handles surrogate pairs)
+    const chars = Array.from(text);
+
+    for (let i = 0; i < chars.length; i++) {
+        const char = chars[i];
+        const nextChar = chars[i + 1];
+
+        if (nextChar === COMBINING_UNDERLINE) {
+            // This character is underlined - it marks the cursor position
+            cursorPos = resultPos;
+
+            // Convert mathematical monospace character to ASCII if applicable
+            const plainChar = mathToAscii.get(char) || char;
+            result += plainChar;
+            resultPos++;
+
+            // Skip the combining underline
+            i++;
+        } else if (char !== COMBINING_UNDERLINE) {
+            // Regular character (skip orphan combining underlines)
+            result += char;
+            resultPos++;
+        }
     }
-    return {
-        text: text.replace('|', ''),
-        cursorPos: cursorIndex
-    };
+
+    return { text: result, cursorPos };
+}
+
+// Parse text and extract cursor position from underlined characters
+function parseTextWithCursor(text) {
+    return parseUnderlinedCursor(text);
+}
+
+// Build reverse mapping from ASCII to mathematical monospace characters
+const asciiToMath = new Map();
+for (const [math, ascii] of mathToAscii) {
+    asciiToMath.set(ascii, math);
+}
+
+// Insert underlined cursor marker at the specified position
+// Converts the character at cursorPos to its underlined equivalent
+function insertUnderlinedCursor(text, cursorPos) {
+    if (cursorPos < 0 || cursorPos >= text.length) {
+        return text;
+    }
+
+    const chars = Array.from(text);
+    const charAtPos = chars[cursorPos];
+
+    // Convert to mathematical monospace if it's a letter or digit
+    const mathChar = asciiToMath.get(charAtPos) || charAtPos;
+
+    // Insert the character with combining underline
+    chars[cursorPos] = mathChar + COMBINING_UNDERLINE;
+
+    return chars.join('');
 }
 
 // Get current exercise
@@ -369,16 +569,16 @@ function hideSuccessPrompt() {
 // Function to check if text and cursor position match target
 function checkSuccess(view) {
     const exercise = getCurrentExercise();
-    const targetParsed = parseTextWithCursor(exercise.target);
+    const finalParsed = parseTextWithCursor(exercise.final);
     const currentText = view.state.doc.toString();
     const currentCursorPos = view.state.selection.main.head;
 
-    const textMatches = currentText === targetParsed.text;
+    const textMatches = currentText === finalParsed.text;
 
     // Normalize cursor position (vim normal mode can't be after last char)
-    let expectedCursorPos = targetParsed.cursorPos;
-    if (expectedCursorPos !== null && expectedCursorPos >= targetParsed.text.length && targetParsed.text.length > 0) {
-        expectedCursorPos = targetParsed.text.length - 1;
+    let expectedCursorPos = finalParsed.cursorPos;
+    if (expectedCursorPos !== null && expectedCursorPos >= finalParsed.text.length && finalParsed.text.length > 0) {
+        expectedCursorPos = finalParsed.text.length - 1;
     }
 
     const cursorMatches = expectedCursorPos === null || currentCursorPos === expectedCursorPos;
@@ -517,15 +717,14 @@ function createEditor(text, cursorPos) {
 
 // Create the read-only target display
 let targetView;
-function createTargetView(textWithMarker) {
+function createTargetView(targetText) {
     const parent = document.getElementById('target');
     if (targetView) {
         targetView.destroy();
     }
 
     // Parse to get cursor position and clean text
-    const parsed = parseTextWithCursor(textWithMarker);
-    const { text, cursorPos } = parsed;
+    const { text, cursorPos } = parseTextWithCursor(targetText);
 
     // Create decorations for cursor highlight
     const decorations = [];
@@ -594,12 +793,12 @@ function updateVimMode() {
 // Load an exercise
 function loadExercise(index) {
     const exercise = exercises[index];
-    const startingParsed = parseTextWithCursor(exercise.starting);
+    const startParsed = parseTextWithCursor(exercise.start);
 
-    // Normalize starting cursor position for vim normal mode
-    let startingCursorPos = startingParsed.cursorPos;
-    if (startingCursorPos !== null && startingCursorPos >= startingParsed.text.length && startingParsed.text.length > 0) {
-        startingCursorPos = startingParsed.text.length - 1;
+    // Normalize start cursor position for vim normal mode
+    let startCursorPos = startParsed.cursorPos;
+    if (startCursorPos !== null && startCursorPos >= startParsed.text.length && startParsed.text.length > 0) {
+        startCursorPos = startParsed.text.length - 1;
     }
 
     // Reset keystroke counter and success state
@@ -636,9 +835,9 @@ function loadExercise(index) {
         shareUrlInput.value = shareUrl || '';
     }
 
-    // Create editors - target highlights the cursor position
-    createEditor(startingParsed.text, startingCursorPos);
-    createTargetView(exercise.target);
+    // Create editors - final view highlights the cursor position
+    createEditor(startParsed.text, startCursorPos);
+    createTargetView(exercise.final);
 
     // Set up event listener for vim mode updates
     editorView.dom.addEventListener('keyup', updateVimMode);
@@ -729,17 +928,18 @@ function createExerciseEditor(parentId, modeElementId) {
     return view;
 }
 
-// Get text with cursor position marker
-function getTextWithCursor(view, recordCursor) {
-    if (!view) return '';
+// Get text and cursor position from editor
+// Returns { text, cursorPos } object
+function getTextAndCursor(view, recordCursor) {
+    if (!view) return { text: '', cursorPos: null };
 
     const text = view.state.doc.toString();
     if (!recordCursor) {
-        return text;
+        return { text, cursorPos: null };
     }
 
     const cursorPos = view.state.selection.main.head;
-    return text.slice(0, cursorPos) + '|' + text.slice(cursorPos);
+    return { text, cursorPos };
 }
 
 // Toggle create exercise section
@@ -814,21 +1014,31 @@ function saveCustomExercise() {
     const recordStartingCursor = document.getElementById('record-starting-cursor').checked;
     const recordGoalCursor = document.getElementById('record-goal-cursor').checked;
 
-    // Get text from editors with cursor positions
-    const startingText = getTextWithCursor(startingEditorView, recordStartingCursor);
-    const targetText = getTextWithCursor(goalEditorView, recordGoalCursor);
+    // Get text and cursor positions from editors
+    const startingData = getTextAndCursor(startingEditorView, recordStartingCursor);
+    const targetData = getTextAndCursor(goalEditorView, recordGoalCursor);
 
     // Validate that there's some content
-    if (!startingText.replace('|', '').trim() && !targetText.replace('|', '').trim()) {
+    if (!startingData.text.trim() && !targetData.text.trim()) {
         alert('Please enter some text in at least one of the editors.');
         return;
     }
 
-    // Create the exercise object
+    // Convert cursor positions to underlined characters if recorded
+    let startText = startingData.text;
+    let finalText = targetData.text;
+
+    if (startingData.cursorPos !== null) {
+        startText = insertUnderlinedCursor(startText, startingData.cursorPos);
+    }
+    if (targetData.cursorPos !== null) {
+        finalText = insertUnderlinedCursor(finalText, targetData.cursorPos);
+    }
+
     const exercise = {
         name,
-        starting: startingText,
-        target: targetText,
+        start: startText,
+        final: finalText,
         description,
         category,
         custom: true
@@ -860,12 +1070,13 @@ function saveCustomExercise() {
 // Initialize the application
 async function init() {
     try {
-        // Load exercises from JSON file
-        const response = await fetch('exercises.json');
+        // Load exercises from YAML file
+        const response = await fetch('exercises.yaml');
         if (!response.ok) {
             throw new Error(`Failed to load exercises: ${response.statusText}`);
         }
-        const builtInExercises = await response.json();
+        const yamlText = await response.text();
+        const builtInExercises = jsyaml.load(yamlText);
 
         // Load custom exercises and merge with built-in exercises
         const customExercises = loadCustomExercises();
@@ -893,6 +1104,27 @@ async function init() {
         // Create exercise button handler
         document.getElementById('create-exercise-btn').addEventListener('click', () => {
             toggleCreateSection(true);
+        });
+
+        // Export exercises button handler
+        document.getElementById('export-exercises-btn').addEventListener('click', exportExercises);
+
+        // Import exercises button handler
+        const importFileInput = document.getElementById('import-file-input');
+        document.getElementById('import-exercises-btn').addEventListener('click', () => {
+            importFileInput.click();
+        });
+        importFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    importExercisesFromYaml(e.target.result);
+                    // Reset the input so the same file can be imported again
+                    importFileInput.value = '';
+                };
+                reader.readAsText(file);
+            }
         });
 
         // Copy URL button handler
@@ -947,7 +1179,7 @@ async function init() {
         });
     } catch (error) {
         console.error('Error initializing Vimercise:', error);
-        alert('Failed to load exercises. Please make sure exercises.json is available.');
+        alert('Failed to load exercises. Please make sure exercises.yaml is available.');
     }
 }
 

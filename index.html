@@ -27,8 +27,11 @@
                     <h2>Exercises</h2>
                     <div class="header-buttons">
                         <button id="create-exercise-btn" class="small-btn create-btn" title="Create custom exercise">+ Create</button>
+                        <button id="export-exercises-btn" class="small-btn" title="Export exercises as YAML">Export</button>
+                        <button id="import-exercises-btn" class="small-btn" title="Import exercises from YAML">Import</button>
                         <button id="clear-progress-btn" class="small-btn" title="Clear all progress">Reset All</button>
                     </div>
+                    <input type="file" id="import-file-input" accept=".yaml,.yml" style="display: none;">
                 </div>
                 <div class="progress-table-wrapper">
                     <div id="progress-table-container">
@@ -175,6 +178,7 @@
         }
     }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <script type="module" src="vimercise.js"></script>
 </body>
 </html>
