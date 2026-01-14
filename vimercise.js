@@ -354,16 +354,6 @@ function renderProgressTable() {
         const table = document.createElement('table');
         table.className = 'progress-table category-table collapsed';
 
-        // Create table header
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr>
-                <th>Exercise</th>
-                <th>Keystrokes</th>
-            </tr>
-        `;
-        table.appendChild(thead);
-
         // Create table body
         const tbody = document.createElement('tbody');
         exercisesByCategory[category].forEach(({ exercise, index }) => {
