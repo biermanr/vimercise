@@ -10,7 +10,10 @@
 <body>
     <div class="container">
         <header>
-            <h1>Vimercise</h1>
+            <div class="header-title-row">
+                <h1>Vimercise</h1>
+                <a href="daily.html" class="daily-link">Try the daily exercise &rarr;</a>
+            </div>
             <p class="instructions">
                 Practice your Vim skills by move the cursor and transforming
                 the starting text to match the target text using Vim commands.
@@ -45,6 +48,7 @@
                     <div class="editor-header">
                         <h2 id="exercise-name">Starting Text (Editable)</h2>
                         <div class="editor-controls">
+                            <button id="delete-exercise-btn" class="delete-btn" title="Delete this exercise">🗑</button>
                             <button id="reset-btn">Reset</button>
                             <div class="keystroke-counter">
                                 Keystrokes: <strong id="keystroke-count">0</strong>

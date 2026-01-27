@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vimercise - Daily Exercise</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Override sidebar layout for daily page */
+        .editors-container {
+            grid-template-columns: 1fr 300px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .editors-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .daily-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .daily-date {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .daily-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .daily-nav a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .daily-nav a:hover {
+            text-decoration: underline;
+        }
+
+        .no-exercise {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-exercise h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        /* Calendar styles */
+        .calendar {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-nav button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .calendar-nav button:hover {
+            background: #2980b9;
+        }
+
+        .calendar-month-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-dow {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            padding: 6px 0;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #bdc3c7;
+            cursor: default;
+        }
+
+        .calendar-day::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin: 3px auto 0;
+            background: transparent;
+        }
+
+        .calendar-day.has-exercise {
+            color: #2c3e50;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .calendar-day.has-exercise::after {
+            background: #3498db;
+        }
+
+        .calendar-day.has-exercise:hover {
+            background: #eaf2f8;
+        }
+
+        .calendar-day.today {
+            outline: 2px solid #3498db;
+            outline-offset: -2px;
+            font-weight: 700;
+        }
+
+        .calendar-day.selected {
+            background: #3498db;
+            color: white;
+            font-weight: 700;
+        }
+
+        .calendar-day.selected::after {
+            background: white;
+        }
+
+        .calendar-day.empty {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="daily-header">
+                <h1>Vimercise Daily</h1>
+                <p class="daily-date" id="daily-date"></p>
+            </div>
+            <p class="instructions">
+                Practice your Vim skills with today's exercise. Transform the starting text to match the target using Vim commands.
+            </p>
+        </header>
+
+        <div class="editors-container">
+            <div class="editors-wrapper">
+                <div id="exercise-content">
+                    <!-- Exercise will be loaded here -->
+                </div>
+            </div>
+            <div id="calendar" class="calendar"></div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "codemirror": "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.js",
+            "@codemirror/state": "https://cdn.jsdelivr.net/npm/@codemirror/state@6.4.1/dist/index.js",
+            "@codemirror/view": "https://cdn.jsdelivr.net/npm/@codemirror/view@6.26.3/dist/index.js",
+            "@codemirror/language": "https://cdn.jsdelivr.net/npm/@codemirror/language@6.10.1/dist/index.js",
+            "@codemirror/commands": "https://cdn.jsdelivr.net/npm/@codemirror/commands@6.3.3/dist/index.js",
+            "@codemirror/search": "https://cdn.jsdelivr.net/npm/@codemirror/search@6.5.6/dist/index.js",
+            "@codemirror/autocomplete": "https://cdn.jsdelivr.net/npm/@codemirror/autocomplete@6.15.0/dist/index.js",
+            "@codemirror/lint": "https://cdn.jsdelivr.net/npm/@codemirror/lint@6.5.0/dist/index.js",
+            "@lezer/common": "https://cdn.jsdelivr.net/npm/@lezer/common@1.2.1/dist/index.js",
+            "@lezer/highlight": "https://cdn.jsdelivr.net/npm/@lezer/highlight@1.2.0/dist/index.js",
+            "style-mod": "https://cdn.jsdelivr.net/npm/style-mod@4.1.2/src/style-mod.js",
+            "w3c-keyname": "https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/index.js",
+            "crelt": "https://cdn.jsdelivr.net/npm/crelt@1.0.6/index.js"
+        }
+    }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script type="module" src="daily.js"></script>
+</body>
+</html>

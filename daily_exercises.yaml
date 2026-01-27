@@ -1,0 +1,31 @@
+# Daily Vimercise Exercises
+# Each exercise has a date category (e.g., "Jan 1 2026") to determine which day it appears
+# Cursor position marker: ^ indicates where the cursor should be positioned
+
+- date: 2026-01-01
+  name: Jump to end of line
+  description: Move the cursor to the end of the line
+  hint: Use $ to jump to the end of the line
+  start: ^Happy New Year everyone!
+  final: Happy New Year everyone^!
+
+- date: 2026-01-02
+  name: Delete until end of line
+  description: Delete everything from the cursor to the end of the line
+  hint: Use D (capital D) to delete from cursor to end of line
+  start: Keep this ^delete this part
+  final: Keep this^
+
+- date: 2026-01-03
+  name: Change inside quotes
+  description: Change the text inside the quotes from 'old' to 'new'
+  hint: Use ci" to change inside double quotes, type 'new', then press Esc
+  start: The value is "^old" here
+  final: The value is "new" here
+
+- date: 2026-01-27
+  name: Swap two words
+  description: Swap 'world' and 'hello' so the line reads 'world hello'
+  hint: Use dw to delete 'hello', move to end with $, then p to paste after 'world'
+  start: ^hello world
+  final: world hello

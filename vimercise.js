@@ -17,7 +17,7 @@ function buildShareUrl(exercise) {
     try {
         const params = new URLSearchParams();
 
-        // Required fields (cursor positions are encoded in the text via underlined characters)
+        // Required fields (cursor positions are encoded in the text via ^ marker)
         params.set('n', exercise.name);
         params.set('d', exercise.description);
         params.set('st', exercise.start);
@@ -48,7 +48,7 @@ function parseExerciseFromUrl() {
             return null;
         }
 
-        // Cursor positions are encoded in the text via underlined characters
+        // Cursor positions are encoded in the text via ^ marker
         const exercise = {
             name: params.get('n'),
             description: params.get('d') || '',
@@ -131,7 +131,7 @@ function checkUrlForSharedExercise() {
 }
 
 // Convert exercise to YAML format
-// Note: Cursor positions should be encoded in start/final text using underlined characters
+// Note: Cursor positions are encoded in start/final text using ^ marker
 function exerciseToYaml(exercise) {
     let yaml = `- name: ${escapeYamlString(exercise.name)}\n`;
     yaml += `  category: ${escapeYamlString(exercise.category || 'Custom')}\n`;
@@ -435,86 +435,30 @@ const editorWrappers = document.querySelectorAll('.editor-section .editor-wrappe
 const startingWrapper = editorWrappers[0];
 const targetWrapper = editorWrappers[1];
 
-// Build mapping from mathematical monospace characters to ASCII
-const COMBINING_UNDERLINE = '\u0332';
-const mathToAscii = new Map();
+// Cursor position marker: ^ indicates cursor should be on the following character
+const CURSOR_MARKER = '^';
 
-// Lowercase a-z: U+1D68A to U+1D6A3
-for (let i = 0; i < 26; i++) {
-    mathToAscii.set(String.fromCodePoint(0x1D68A + i), String.fromCharCode(97 + i));
-}
-// Uppercase A-Z: U+1D670 to U+1D689
-for (let i = 0; i < 26; i++) {
-    mathToAscii.set(String.fromCodePoint(0x1D670 + i), String.fromCharCode(65 + i));
-}
-// Digits 0-9: U+1D7F6 to U+1D7FF
-for (let i = 0; i < 10; i++) {
-    mathToAscii.set(String.fromCodePoint(0x1D7F6 + i), String.fromCharCode(48 + i));
-}
+// Parse text and extract cursor position from ^ marker
+// The cursor will be positioned on the character immediately after ^
+function parseTextWithCursor(text) {
+    const markerIndex = text.indexOf(CURSOR_MARKER);
 
-// Parse text and extract cursor position from underlined characters
-// Detects characters followed by combining underline (U+0332) and extracts cursor position
-function parseUnderlinedCursor(text) {
-    let cursorPos = null;
-    let result = '';
-    let resultPos = 0;
-
-    // Use Array.from to properly iterate over code points (handles surrogate pairs)
-    const chars = Array.from(text);
-
-    for (let i = 0; i < chars.length; i++) {
-        const char = chars[i];
-        const nextChar = chars[i + 1];
-
-        if (nextChar === COMBINING_UNDERLINE) {
-            // This character is underlined - it marks the cursor position
-            cursorPos = resultPos;
-
-            // Convert mathematical monospace character to ASCII if applicable
-            const plainChar = mathToAscii.get(char) || char;
-            result += plainChar;
-            resultPos++;
-
-            // Skip the combining underline
-            i++;
-        } else if (char !== COMBINING_UNDERLINE) {
-            // Regular character (skip orphan combining underlines)
-            result += char;
-            resultPos++;
-        }
+    if (markerIndex === -1) {
+        return { text, cursorPos: null };
     }
 
-    return { text: result, cursorPos };
+    // Remove the marker and return the position
+    const cleanText = text.slice(0, markerIndex) + text.slice(markerIndex + 1);
+    return { text: cleanText, cursorPos: markerIndex };
 }
 
-// Parse text and extract cursor position from underlined characters
-function parseTextWithCursor(text) {
-    return parseUnderlinedCursor(text);
-}
-
-// Build reverse mapping from ASCII to mathematical monospace characters
-const asciiToMath = new Map();
-for (const [math, ascii] of mathToAscii) {
-    asciiToMath.set(ascii, math);
-}
-
-// Insert underlined cursor marker at the specified position
-// Converts the character at cursorPos to its underlined equivalent
-function insertUnderlinedCursor(text, cursorPos) {
-    if (cursorPos < 0 || cursorPos >= text.length) {
+// Insert cursor marker (^) at the specified position
+function insertCursorMarker(text, cursorPos) {
+    if (cursorPos < 0 || cursorPos > text.length) {
         return text;
     }
 
-    const chars = Array.from(text);
-    const charAtPos = chars[cursorPos];
-
-    // Convert to mathematical monospace if it's a letter or digit
-    const mathChar = asciiToMath.get(charAtPos) || charAtPos;
-
-    // Insert the character with combining underline
-    chars[cursorPos] = mathChar + COMBINING_UNDERLINE;
-
-    return chars.join('');
+    return text.slice(0, cursorPos) + CURSOR_MARKER + text.slice(cursorPos);
 }
 
 // Get current exercise
@@ -856,6 +800,59 @@ function retryCurrentExercise() {
     loadExercise(currentExerciseIndex);
 }
 
+// Function to delete current exercise
+function deleteCurrentExercise() {
+    const exercise = getCurrentExercise();
+
+    if (!exercise) {
+        alert('No exercise to delete.');
+        return;
+    }
+
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete "${exercise.name}"?`)) {
+        return;
+    }
+
+    // Remove from custom exercises in localStorage if it's a custom exercise
+    if (exercise.custom) {
+        const customExercises = loadCustomExercises();
+        const customIndex = customExercises.findIndex(ex =>
+            ex.name === exercise.name &&
+            ex.start === exercise.start &&
+            ex.final === exercise.final
+        );
+        if (customIndex !== -1) {
+            customExercises.splice(customIndex, 1);
+            localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(customExercises));
+        }
+    }
+
+    // Remove from exercises array
+    exercises.splice(currentExerciseIndex, 1);
+
+    // Also remove from progress if it exists
+    const progress = loadProgress();
+    if (progress.exercises[exercise.name]) {
+        delete progress.exercises[exercise.name];
+        saveProgress(progress);
+    }
+
+    // Adjust current index if needed
+    if (exercises.length === 0) {
+        alert('No exercises remaining.');
+        return;
+    }
+
+    if (currentExerciseIndex >= exercises.length) {
+        currentExerciseIndex = exercises.length - 1;
+    }
+
+    // Reload the current exercise and update UI
+    loadExercise(currentExerciseIndex);
+    renderProgressTable();
+}
+
 // Create Exercise functionality
 let startingEditorView = null;
 let goalEditorView = null;
@@ -1014,15 +1011,15 @@ function saveCustomExercise() {
         return;
     }
 
-    // Convert cursor positions to underlined characters if recorded
+    // Insert cursor markers (^) if cursor positions were recorded
     let startText = startingData.text;
     let finalText = targetData.text;
 
     if (startingData.cursorPos !== null) {
-        startText = insertUnderlinedCursor(startText, startingData.cursorPos);
+        startText = insertCursorMarker(startText, startingData.cursorPos);
     }
     if (targetData.cursorPos !== null) {
-        finalText = insertUnderlinedCursor(finalText, targetData.cursorPos);
+        finalText = insertCursorMarker(finalText, targetData.cursorPos);
     }
 
     const exercise = {
@@ -1079,6 +1076,9 @@ async function init() {
         document.getElementById('reset-btn').addEventListener('click', () => {
             loadExercise(currentExerciseIndex);
         });
+
+        // Delete exercise button handler
+        document.getElementById('delete-exercise-btn').addEventListener('click', deleteCurrentExercise);
 
         // Initial load - use shared exercise if available, otherwise start at 0
         const initialIndex = sharedExerciseIndex !== null ? sharedExerciseIndex : 0;

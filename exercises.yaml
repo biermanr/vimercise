@@ -1,48 +1,46 @@
-# Characters to use for marking desired cursor position
-#
-#    𝚊̲𝚋̲𝚌̲𝚍̲𝚎̲𝚏̲𝚐̲𝚑̲𝚒̲𝚓̲𝚔̲𝚕̲𝚖̲𝚗̲𝚘̲𝚙̲𝚚̲𝚛̲𝚜̲𝚝̲𝚞̲𝚟̲𝚠̲𝚡̲𝚢̲𝚣̲
-#    𝙰̲𝙱̲𝙲̲𝙳̲𝙴̲𝙵̲𝙶̲𝙷̲𝙸̲𝙹̲𝙺̲𝙻̲𝙼̲𝙽̲𝙾̲𝙿̲𝚀̲𝚁̲𝚂̲𝚃̲𝚄̲𝚅̲𝚆̲𝚇̲𝚈̲𝚉̲
-#    𝟶̲𝟷̲𝟸̲𝟹̲𝟺̲𝟻̲𝟼̲𝟽̲𝟾̲𝟿̲(̲)̲{̲}̲[̲]̲
+# Cursor position marker: ^ indicates where the cursor should be positioned
+# The cursor will be on the character immediately following the ^
+# Example: "The ^quick brown fox" means cursor is on 'q'
 
 - name: Navigate to word
   category: 1. Movement
   description: Move cursor to the start of the word 'fox'
   hint: Use w to move forward by words
   start: The quick brown fox broke the sound barrier
-  final: The quick brown 𝚏̲ox broke the sound barrier
+  final: The quick brown ^fox broke the sound barrier
 
 - name: Move to end of line
   category: 1. Movement
   description: Move cursor to the end of the line
   hint: Use $ to jump to the end of the line
   start: The cursor is all the way to the left, let's move it to the end of the line
-  final: The cursor is all the way to the left, let's move it to the end of the lin𝚎̲
+  final: The cursor is all the way to the left, let's move it to the end of the lin^e
 
 - name: Move to start of line
   category: 1. Movement
   description: Move cursor to the beginning of the line
-  hint: Use 0 to jump to the start of the line, or ^ to jump to the first non-whitespace character
-  start: This time the cursor is already at the end, let's move it to the star𝚝̲
-  final: 𝚃̲his time the cursor is already at the end, let's move it to the start
+  hint: Use 0 to jump to the start of the line, or use the other ^ to jump to the first non-whitespace character
+  start: This time the cursor is already at the end, let's move it to the star^t
+  final: ^This time the cursor is already at the end, let's move it to the start
 
 - name: Move backwards by word
   category: 1. Movement
   description: Move cursor backwards to the word 'quick'
   hint: Use b to move backwards by words. Count how many times you need to press b
-  start: The quick brown fo𝚡̲
-  final: The 𝚚̲uick brown fox
+  start: The quick brown fo^x
+  final: The ^quick brown fox
 
 - name: Move to end of word
   category: 1. Movement
   description: Move cursor to the end of the word 'The'
   hint: Use e to move to the end of the current word
-  start: 𝚃̲he quick brown fox
-  final: Th𝚎̲ quick brown fox
+  start: ^The quick brown fox
+  final: Th^e quick brown fox
 
 - name: Navigate down lines
   category: 1. Movement
   description: Move cursor down to the 'return' line
-  hint: Use j to move down lines, then use w or ^ to position the cursor correctly
+  hint: Use j to move down lines, then use w or 0 to position the cursor correctly
   start: |-
     function hello() {
         console.log('Hello');
@@ -51,7 +49,7 @@
   final: |-
     function hello() {
         console.log('Hello');
-        𝚛̲eturn true;
+        ^return true;
     }
 
 - name: Navigate to last line
@@ -69,7 +67,7 @@
     Second line
     Third line
     Fourth line
-    𝙵̲ifth line
+    ^Fifth line
 
 - name: Navigate to first line
   category: 1. Movement
@@ -80,9 +78,9 @@
     Second line
     Third line
     Fourth line
-    Fifth 𝚕̲ine
+    Fifth ^line
   final: |-
-    𝙵̲irst line
+    ^First line
     Second line
     Third line
     Fourth line
@@ -128,13 +126,13 @@
   description: Add the missing 'r' at the end
   hint: Use A to append at end of line, type 'r', then Esc
   start: Fix this line by adding the missing lette
-  final: Fix this line by adding the missing lette𝚛̲
+  final: Fix this line by adding the missing lette^r
 
 - name: Delete multiple words
   category: 2. Editing
   description: 'Delete the next 2 words ''IS LAME'''
   hint: Use d2w to delete 2 words, or use w to navigate then dw twice
-  start: VIM 𝙸̲S LAME awesome and powerful
+  start: VIM ^IS LAME awesome and powerful
   final: VIM awesome and powerful
 
 - name: Change quoted word
@@ -197,13 +195,13 @@
     Fourth line
   final: |-
     First line
-    
+
     Second line
-    
+
     Third line
-    
+
     Fourth line
-    
+
 
 - name: Delete words with capitals
   category: 4. Dot Command
@@ -289,7 +287,7 @@
   description: Add test cases for a python list of strings
   hint: Make a macro to copy the line, paste, and increment with yypC-a
   start: |-
-    assert lines[0] == 'blaha'
+    assert lines[0] == 'blah'
   final: |-
     assert lines[0] == 'blah'
     assert lines[1] == 'bleh'
@@ -305,15 +303,14 @@
     the , going to the line with enter then going back to normal mode, and using
     ; to repeat the movement twice, then . to repeat the command, indenting etc.
     might need to do a final indenting after the first line, this becomes
-    ;;.;;.;;.  
+    ;;.;;.;;.
   start: |-
     samtools view -f 3 -F 3584 -L chr1.bed -o filtered_reads.sam -U removed_reads.sam mouse_reads.bam
   final: |-
-    samtoolss view \
+    samtools view \
       -f 3 \
       -F 3584 \
       -L chr1.bed \
       -o filtered_reads.sam \
       -U removed_reads.sam \
       mouse_reads.bam
-
